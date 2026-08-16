@@ -52,7 +52,7 @@ public class CartMenu
                     break;
 
                 case 5:
-                    _orderService.ShowHistory();
+                    _orderService.ShowHistory(products);
                     new Pause().pause();
                     break;
 

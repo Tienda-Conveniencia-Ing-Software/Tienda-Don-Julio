@@ -9,7 +9,7 @@ using TiendaBarrio.Core.Models;
 
 public  class ProductRepository
 {
-    private string RutaProductos = "C:\\Users\\PC\\source\\repos\\Tienda-Don-Julio\\TiendaBarrio\\Data\\productos.txt";
+    private string RutaProductos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
 
     public  List<Product> LoadProducts()
     {

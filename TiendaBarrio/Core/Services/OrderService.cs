@@ -32,7 +32,7 @@ public class OrderService
         return order;
     }
 
-    public void ShowHistory()
+    public void ShowHistory(List<Product> products)
     {
         var lines = _repository.LoadOrderLines();
         if (lines.Count == 0)
@@ -44,7 +44,31 @@ public class OrderService
         Console.WriteLine("Order history:");
         foreach (var line in lines)
         {
-            Console.WriteLine(line);
+            string[] parts = line.Split(';');
+            if (parts.Length < 5) continue;
+
+            string id = parts[0];
+            string status = parts[1];
+            string date = parts[2];
+            string total = parts[3];
+            string itemsRaw = parts[4];
+
+            Console.WriteLine($"\nOrder #{id} - {status} - {date} - Total: {total}");
+
+            var itemPairs = itemsRaw.Split(',');
+            foreach (var pair in itemPairs)
+            {
+                string[] idQty = pair.Split(':');
+                if (idQty.Length < 2) continue;
+
+                if (!int.TryParse(idQty[0], out int productId)) continue;
+                if (!int.TryParse(idQty[1], out int quantity)) continue;
+
+                var product = products.FirstOrDefault(p => p.ID == productId);
+            string name = product != null ? product.Name : $"Product #{productId} (not found)";
+
+                Console.WriteLine($"  - {name} x{quantity}");
+            }
         }
     }
 }

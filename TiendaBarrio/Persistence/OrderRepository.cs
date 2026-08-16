@@ -5,7 +5,7 @@ using TiendaBarrio.Core.Models;
 
 public class OrderRepository
 {
-    private string RutaPedidos = "C:\\Users\\PC\\source\\repos\\Tienda-Don-Julio\\TiendaBarrio\\Data\\pedidos.txt";
+    private string RutaPedidos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "pedidos.txt");
 
     public void SaveOrder(Order order)
     {

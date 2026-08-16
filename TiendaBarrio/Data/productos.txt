@@ -1,6 +1,6 @@
-1; Computador portatil ;3200000;28
-2; Mouse inalambrico ;65000;28
-3; Teclado ;120000;30
+1; Computador portatil ;3200000;26
+2; Mouse inalambrico ;65000;26
+3; Teclado ;120000;24
 4; Monitor 24 pulgadas ;780000;15
 5; Audifonos ;210000;20
 6; Disco solido 1TB ;420000;18
@@ -10,5 +10,5 @@
 10; Router inalambrico ;390000;14
 11; Tijeras ;50000;28
 12; CocaCola 250ml ;2500;88
-13; Agua 1L ;1000;200
+13; Agua 1L ;1000;133
 14;      ;0;0
