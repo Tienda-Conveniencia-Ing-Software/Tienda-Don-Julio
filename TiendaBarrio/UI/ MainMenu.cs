@@ -1,12 +1,15 @@
 namespace TiendaBarrio.UI;
 
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Core.Services;
 using TiendaBarrio.Inventario;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Utils;
 
-public class MainMenu(List<Product> products)
+public class MainMenu()
 {
+    private readonly CartService _cart = new();
+
     public void Start()
     {
         List<Product> products = new ProductRepository().LoadProducts();
@@ -35,7 +38,7 @@ public class MainMenu(List<Product> products)
                     break;
 
                 case 2:
-                    new SalesMenu().BuyStock(products);
+                    new SalesMenu(_cart).BuyStock(products);
                     new Pause().pause();
                     break;
 
@@ -44,17 +47,10 @@ public class MainMenu(List<Product> products)
                     new Pause().pause();
                     break;
 
-                case 4:
-                    new CartMenu().Start(products);
-                    new Pause().pause();
-                    break;
-
                 default:
                     Console.WriteLine("Option not available");
                     new Pause().pause();
                     break;
-
-
             }
         }
         static void ShopMenu()
@@ -64,9 +60,7 @@ public class MainMenu(List<Product> products)
             Console.WriteLine("1. see stock");
             Console.WriteLine("2. buy");
             Console.WriteLine("3. add stock");
-            Console.WriteLine("4. cart / checkout");
             Console.WriteLine("\nSelect an option: ");
         }
-
     }
 }

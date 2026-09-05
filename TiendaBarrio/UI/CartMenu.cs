@@ -4,10 +4,9 @@ using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
 using TiendaBarrio.Utils;
 
-public class CartMenu
+public class CartMenu(CartService cart)
 {
-    private readonly CartService _cart = new();
-    private readonly OrderService _orderService = new();
+    private readonly CartService _cart = cart;
 
     public void Start(List<Product> products)
     {
@@ -46,16 +45,6 @@ public class CartMenu
                     new Pause().pause();
                     break;
 
-                case 4:
-                    ConfirmOrderFlow(products);
-                    new Pause().pause();
-                    break;
-
-                case 5:
-                    _orderService.ShowHistory(products);
-                    new Pause().pause();
-                    break;
-
                 default:
                     Console.WriteLine("Option not available");
                     new Pause().pause();
@@ -66,13 +55,11 @@ public class CartMenu
 
     private void ShowMenu()
     {
-        Console.WriteLine("\n// CART \\\\");
+        Console.WriteLine("\n// CART (editing only) \\\\");
         Console.WriteLine("0. Back");
         Console.WriteLine("1. Add product");
         Console.WriteLine("2. Update quantity");
         Console.WriteLine("3. Remove item");
-        Console.WriteLine("4. Confirm order");
-        Console.WriteLine("5. Order history");
         Console.WriteLine("\nSelect an option: ");
     }
 
@@ -113,6 +100,12 @@ public class CartMenu
 
     private void UpdateQuantityFlow()
     {
+        if (_cart.Items.Count == 0)
+        {
+            Console.WriteLine("Cart is empty, nothing to update.");
+            return;
+        }
+
         Console.WriteLine("Enter product ID:");
         if (!int.TryParse(Console.ReadLine(), out int id)) return;
 
@@ -124,18 +117,23 @@ public class CartMenu
 
     private void RemoveItemFlow()
     {
+        if (_cart.Items.Count == 0)
+        {
+            Console.WriteLine("Cart is empty, nothing to remove.");
+            return;
+        }
+
         Console.WriteLine("Enter product ID to remove:");
         if (!int.TryParse(Console.ReadLine(), out int id)) return;
 
-        _cart.RemoveItem(id);
-    }
-
-    private void ConfirmOrderFlow(List<Product> products)
-    {
-        var order = _orderService.ConfirmOrder(_cart, products);
-        if (order != null)
+        var item = _cart.Items.FirstOrDefault(i => i.Product.ID == id);
+        if (item == null)
         {
-            Console.WriteLine($"Order #{order.Id} confirmed. Total: {order.Total}. Status: {order.Status}");
+            Console.WriteLine("Product not found in cart.");
+            return;
         }
+
+        _cart.RemoveItem(id);
+        Console.WriteLine("Item removed.");
     }
 }
