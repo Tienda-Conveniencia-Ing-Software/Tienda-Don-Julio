@@ -6,7 +6,7 @@ class Program
 {
     static void Main()
     {
-        MainMenu menu = new MainMenu(new List<Product>());
+        MainMenu menu = new MainMenu();
         menu.Start();
     }
 }
