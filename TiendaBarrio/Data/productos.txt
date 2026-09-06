@@ -1,9 +1,9 @@
-1; Computador portatil ;3200000;26
-2; Mouse inalambrico ;65000;13
+1; Computador portatil ;3200000;25
+2; Mouse inalambrico ;65000;6
 3; Teclado ;120000;24
-4; Monitor 24 pulgadas ;780000;15
+4; Monitor 24 pulgadas ;780000;28
 5; Audifonos ;210000;17
-6; Disco solido 1TB ;420000;10
+6; Disco solido 1TB ;420000;3
 7; Memoria USB 64GB ;45000;36
 8; Impresora ;650000;10
 9; Camara web ;180000;22
