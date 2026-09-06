@@ -1,0 +1,5 @@
+1;Ingreso;6335000;Venta pedido #1;2026-09-05 20:33:50
+2;CompraInventario;10140000;Reposicion de stock:  Monitor 24 pulgadas  x13;2026-09-05 20:34:39
+3;Ingreso;260000;Venta pedido #1;2026-09-05 20:36:16
+4;Ingreso;4500000;ingreso de mis cojones peludos;2026-09-05 20:36:44
+5;Gasto;676767;iva pa la perra de chupiplu;2026-09-05 20:37:11

@@ -47,6 +47,11 @@ public class MainMenu()
                     new Pause().pause();
                     break;
 
+                case 4:
+                    new FinanceMenu().Start();
+                    new Pause().pause();
+                    break;
+
                 default:
                     Console.WriteLine("Option not available");
                     new Pause().pause();
@@ -60,6 +65,7 @@ public class MainMenu()
             Console.WriteLine("1. see stock");
             Console.WriteLine("2. buy");
             Console.WriteLine("3. add stock");
+            Console.WriteLine("4. finance / balance");
             Console.WriteLine("\nSelect an option: ");
         }
     }
