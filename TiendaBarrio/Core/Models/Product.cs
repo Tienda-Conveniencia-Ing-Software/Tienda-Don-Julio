@@ -4,23 +4,35 @@ public class Product
 {
     public int ID { get; }
     public string Name { get; }
-    public double Price { get; }
+    public double Price { get; }           
+    public double PurchasePrice { get; }   // NUEVO: Precio de compra (costo)
     public int Stock { get; private set; }
 
-    public Product(int id, string name, double price, int stock)
+    public Product(int id, string name, double price, double purchasePrice, int stock)
     {
         ID = id;
         Name = name;
         
-        //Validación: El precio no puede ser negativo
+        // Validación: El precio de venta no puede ser negativo
         if (price < 0)
         {
-            Console.WriteLine("Advertencia: El precio no puede ser negativo. Se asignará 0.");
+            Console.WriteLine("Advertencia: El precio de venta no puede ser negativo. Se asignará 0.");
             Price = 0;
         }
         else
         {
             Price = price;
+        }
+        
+        // Validación: El precio de compra no puede ser negativo
+        if (purchasePrice < 0)
+        {
+            Console.WriteLine("Advertencia: El precio de compra no puede ser negativo. Se asignará 0.");
+            PurchasePrice = 0;
+        }
+        else
+        {
+            PurchasePrice = purchasePrice;
         }
         
         // Validación: El stock no puede ser negativo
@@ -37,7 +49,7 @@ public class Product
     
     public void ReduceStock(int quantity)
     {
-        //Validación: Solo reducir si la cantidad es positiva y no supera el stock
+        // Validación: Solo reducir si la cantidad es positiva y no supera el stock
         if (quantity > 0 && quantity <= Stock)
         {
             Stock -= quantity;
