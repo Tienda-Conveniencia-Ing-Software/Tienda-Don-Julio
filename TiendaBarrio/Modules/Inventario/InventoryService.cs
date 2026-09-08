@@ -21,11 +21,11 @@ public class InventoryService()
         {
             Console.WriteLine("Existing stock");
             new ShowProducts().StockMenu(products);
-            Console.WriteLine("You want more stock or add new produtc?");
+            Console.WriteLine("You want more stock or add new product?");
             bool exit = false;
             Console.WriteLine("0. Exit ");
             Console.WriteLine("1. Add stock");
-            Console.WriteLine("2. Add new produtc");
+            Console.WriteLine("2. Add new product");
             Console.WriteLine("\nSelect an option: ");
             exit = int.TryParse(Console.ReadLine(), out int option);
             while (exit)
@@ -35,11 +35,26 @@ public class InventoryService()
                 if (option == 1)
                 {
                     Console.WriteLine("Put the ID of the product you are searching");
-                    int.TryParse(Console.ReadLine(), out int idfound);
+                    int idfound;
+                    // VALIDACIÓN: El ID debe ser un número
+                    while (!int.TryParse(Console.ReadLine(), out idfound))
+                    {
+                        Console.WriteLine("❌ Error: You must enter a valid number for the ID.");
+                        Console.WriteLine("Put the ID of the product you are searching");
+                    }
+                    
                     Product found = null;
                     found = FoundProduct(products, idfound);
+                    
                     Console.WriteLine("Put the amount to add");
-                    int.TryParse(Console.ReadLine(), out int quantity);
+                    int quantity;
+                    // VALIDACIÓN: La cantidad debe ser un número mayor a 0
+                    while (!int.TryParse(Console.ReadLine(), out quantity) || quantity <= 0)
+                    {
+                        Console.WriteLine("❌ Error: You must enter a number greater than 0.");
+                        Console.WriteLine("Put the amount to add");
+                    }
+                    
                     found.IncreaseStock(quantity);
                     new ProductRepository().SaveProducts(products);
                     Console.WriteLine("The new stock of the product is: " + found.Stock);
@@ -50,10 +65,25 @@ public class InventoryService()
                     Console.WriteLine("Set name to the product");
                     string name = " " + Console.ReadLine() + " ";
                     int id = products[products.Count - 1].ID + 1;
+                    
                     Console.WriteLine("Set price to the product");
-                    double.TryParse(Console.ReadLine(), out double price);
+                    double price;
+                    // VALIDACIÓN: El precio debe ser un número mayor a 0
+                    while (!double.TryParse(Console.ReadLine(), out price) || price <= 0)
+                    {
+                        Console.WriteLine("❌ Error: You must enter a price greater than 0.");
+                        Console.WriteLine("Set price to the product");
+                    }
+                    
                     Console.WriteLine("Set stock to the product");
-                    int.TryParse(Console.ReadLine(), out int stock);
+                    int stock;
+                    // VALIDACIÓN: El stock debe ser un número mayor o igual a 0
+                    while (!int.TryParse(Console.ReadLine(), out stock) || stock < 0)
+                    {
+                        Console.WriteLine("❌ Error: You must enter a stock greater than or equal to 0.");
+                        Console.WriteLine("Set stock to the product");
+                    }
+                    
                     Product p = new Product(id, name, price, stock);
                     products.Add(p);
                     Console.WriteLine("The new product is:\n" + "[" +
@@ -79,6 +109,4 @@ public class InventoryService()
             Console.WriteLine("Exception: " + e.Message);
         }
     }
-
-
 }
