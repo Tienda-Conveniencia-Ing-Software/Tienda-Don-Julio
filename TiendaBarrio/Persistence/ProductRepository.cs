@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
 
-public  class ProductRepository
+public class ProductRepository
 {
     private string RutaProductos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
 
-    public  List<Product> LoadProducts()
+    public List<Product> LoadProducts()
     {
         var products = new List<Product>();
 
@@ -24,7 +24,7 @@ public  class ProductRepository
                 continue;
 
             string[] lineSplit = line.Split(';');
-            if (lineSplit.Length < 4)
+            if (lineSplit.Length < 5) 
                 continue;
 
             if (!int.TryParse(lineSplit[0], out int id))
@@ -32,26 +32,34 @@ public  class ProductRepository
 
             string name = lineSplit[1];
 
-            // Normalize currency/number formats: remove currency symbol and thousand separators,
-            // then ensure decimal separator is '.' for invariant parsing.
+            // Normaliza el precio de venta
             string priceRaw = lineSplit[2].Replace("$", string.Empty).Trim();
             priceRaw = priceRaw.Replace(".", "").Replace(",", ".");
             if (!double.TryParse(priceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double price))
                 continue;
 
-            if (!int.TryParse(lineSplit[3], out int stock))
+            // Leer el precio de compra (PurchasePrice)
+            string purchasePriceRaw = lineSplit[3].Replace("$", string.Empty).Trim();
+            purchasePriceRaw = purchasePriceRaw.Replace(".", "").Replace(",", ".");
+            if (!double.TryParse(purchasePriceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double purchasePrice))
+                continue;
+
+            if (!int.TryParse(lineSplit[4], out int stock))
                 stock = 0;
 
-            var p = new Product(id, name, price, stock);
+            // Pasar purchasePrice al constructor
+            var p = new Product(id, name, price, purchasePrice, stock);
             products.Add(p);
         }
 
         return products;
     }
-    public  void SaveProducts(List<Product> products)
+
+    public void SaveProducts(List<Product> products)
     {
+        // Guardar PurchasePrice en el archivo
         string[] lines = products
-            .Select(p => $"{p.ID};{p.Name};{p.Price};{p.Stock}")
+            .Select(p => $"{p.ID};{p.Name};{p.Price};{p.PurchasePrice};{p.Stock}")
             .ToArray();
         File.WriteAllLines(RutaProductos, lines);
     }
