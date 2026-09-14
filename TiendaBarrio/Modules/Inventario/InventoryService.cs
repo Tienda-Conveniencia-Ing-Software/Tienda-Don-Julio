@@ -64,7 +64,7 @@ public class InventoryService()
                 {
                     Console.WriteLine("Set name to the product");
                     string name = " " + Console.ReadLine() + " ";
-                    int id = products[products.Count - 1].ID + 1;
+                    int id = products.Count > 0 ? products[products.Count - 1].ID + 1 : 1;
                     
                     Console.WriteLine("Set sale price to the product");
                     double price;
