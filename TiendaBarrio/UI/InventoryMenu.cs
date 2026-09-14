@@ -1,4 +1,4 @@
-namespace TiendaBarrio.UI;
+namespace TiendaBarrio.Utils;
 
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence;
