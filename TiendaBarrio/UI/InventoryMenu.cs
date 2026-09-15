@@ -14,7 +14,7 @@ public class ShowProducts()
             {
                 Console.Write($"[{p.ID}]");
                 Console.Write(p.Name);
-                Console.Write(p.Price + "$ ");
+                Console.Write(p.SPrice + "$ ");
                 Console.WriteLine(p.Stock);
             }
         }

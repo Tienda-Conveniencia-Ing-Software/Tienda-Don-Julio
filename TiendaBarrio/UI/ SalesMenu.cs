@@ -75,7 +75,7 @@ public class SalesMenu(CartService cart)
             }
 
             Console.WriteLine("ID of the product found, the name is:" + found.Name);
-            Console.WriteLine("The price of the product is: " + found.Price);
+            Console.WriteLine("The sale price of the product is: " + found.SPrice);
             Console.WriteLine("The stock of the product is: " + found.Stock);
             Console.WriteLine("How many do you want to buy?");
 

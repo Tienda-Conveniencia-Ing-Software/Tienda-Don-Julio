@@ -1,17 +1,14 @@
 namespace TiendaBarrio.Persistence;
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
 
-public  class ProductRepository
+public class ProductRepository
 {
-    private string RutaProductos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
+    private readonly string RutaProductos =
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
 
-    public  List<Product> LoadProducts()
+    public List<Product> LoadProducts()
     {
         var products = new List<Product>();
 
@@ -24,35 +21,45 @@ public  class ProductRepository
                 continue;
 
             string[] lineSplit = line.Split(';');
-            if (lineSplit.Length < 4)
+
+            if (lineSplit.Length < 5)
                 continue;
 
-            if (!int.TryParse(lineSplit[0], out int id))
+            if (!int.TryParse(lineSplit[0].Trim(), out int id))
                 continue;
 
-            string name = lineSplit[1];
+            string name = lineSplit[1].Trim();
 
-            // Normalize currency/number formats: remove currency symbol and thousand separators,
-            // then ensure decimal separator is '.' for invariant parsing.
-            string priceRaw = lineSplit[2].Replace("$", string.Empty).Trim();
-            priceRaw = priceRaw.Replace(".", "").Replace(",", ".");
-            if (!double.TryParse(priceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double price))
+            if (!double.TryParse(
+                    lineSplit[2].Trim(),
+                    NumberStyles.Any,
+                    CultureInfo.InvariantCulture,
+                    out double sprice))
                 continue;
 
-            if (!int.TryParse(lineSplit[3], out int stock))
+            if (!double.TryParse(
+                    lineSplit[3].Trim(),
+                    NumberStyles.Any,
+                    CultureInfo.InvariantCulture,
+                    out double bprice))
+                continue;
+
+            if (!int.TryParse(lineSplit[4].Trim(), out int stock))
                 stock = 0;
 
-            var p = new Product(id, name, price, stock);
-            products.Add(p);
+            var product = new Product(id, name, sprice, bprice, stock);
+            products.Add(product);
         }
 
         return products;
     }
-    public  void SaveProducts(List<Product> products)
+
+    public void SaveProducts(List<Product> products)
     {
         string[] lines = products
-            .Select(p => $"{p.ID};{p.Name};{p.Price};{p.Stock}")
+            .Select(p => $"{p.ID};{p.Name};{p.SPrice};{p.BPrice};{p.Stock}")
             .ToArray();
+
         File.WriteAllLines(RutaProductos, lines);
     }
 }
