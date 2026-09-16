@@ -90,13 +90,13 @@ public class SaleRepository
     {
         if (sale == null)
         {
-            Console.WriteLine("❌ Error: No se puede guardar una venta nula.");
+            Console.WriteLine("Error: No se puede guardar una venta nula.");
             return;
         }
 
         if (sale.Details == null || sale.Details.Count == 0)
         {
-            Console.WriteLine("❌ Error: No se puede guardar una venta sin productos.");
+            Console.WriteLine("Error: No se puede guardar una venta sin productos.");
             return;
         }
 
