@@ -1,11 +1,14 @@
 namespace TiendaBarrio.Inventario;
 
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Core.Services;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Utils;
 
 public class InventoryService()
 {
+    private readonly FinanceService _financeService = new();
+
     public Product FoundProduct(List<Product> products, int idfound)
     {
         Product found = null;
@@ -72,6 +75,9 @@ public class InventoryService()
 
                     new ProductRepository().SaveProducts(products);
 
+                    double cost = found.PurchasePrice * quantity;
+                    _financeService.RegisterInventoryPurchase(cost, $"Reposicion de stock: {found.Name} x{quantity}");
+
                     Console.WriteLine("The new stock of the product is: " + found.Stock);
                     break;
                 }
@@ -108,6 +114,9 @@ public class InventoryService()
 
                     Product p = new Product(id, name, price, purchasePrice, stock);
                     products.Add(p);
+
+                    double cost = purchasePrice * stock;
+                    _financeService.RegisterInventoryPurchase(cost, $"Producto nuevo: {name.Trim()} x{stock}");
 
                     Console.WriteLine("The new product is:\n" +
                         "[" + p.ID + "] " + p.Name +

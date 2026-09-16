@@ -6,6 +6,7 @@ using TiendaBarrio.Persistence;
 public class OrderService
 {
     private readonly OrderRepository _repository = new();
+    private readonly FinanceService _financeService = new();
     private int _nextId = 1;
 
     public Order? ConfirmOrder(CartService cart, List<Product> products)
@@ -27,6 +28,8 @@ public class OrderService
         new ProductRepository().SaveProducts(products);
         order.AdvanceStatus(OrderStatus.Confirmado);
         _repository.SaveOrder(order);
+
+        _financeService.RegisterIncome(order.Total, $"Venta pedido #{order.Id}");
 
         cart.Clear();
         return order;

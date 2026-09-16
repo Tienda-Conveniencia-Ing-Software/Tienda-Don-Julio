@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+1; Computador portatil ;3200000;25
+2; Mouse inalambrico ;65000;6
+3; Teclado ;120000;24
+4; Monitor 24 pulgadas ;780000;28
+5; Audifonos ;210000;17
+6; Disco solido 1TB ;420000;3
+7; Memoria USB 64GB ;45000;36
+8; Impresora ;650000;10
+9; Camara web ;180000;22
+10; Router inalambrico ;390000;14
+11; Tijeras ;50000;22
+12; CocaCola 250ml ;2500;88
+13; Agua 1L ;1000;133
+14;      ;0;0
+=======
 1;Computador portatil;3200000;2500000;26
 2;Mouse inalambrico;65000;40000;13
 3;Teclado;120000;75000;24
@@ -13,3 +29,4 @@
 13;Agua 1L;1000;600;133
 14;;0;0;0
 15; prueba ;10000;6000;5
+>>>>>>> main
