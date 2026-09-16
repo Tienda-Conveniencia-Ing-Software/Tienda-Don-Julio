@@ -5,11 +5,12 @@ using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
 using TiendaBarrio.Utils;
 using TiendaBarrio.Inventario;
+using TiendaBarrio.Modules.Ventas;
 
 public class SalesMenu(CartService cart)
 {
     private readonly CartService _cart = cart;
-    private readonly OrderService _orderService = new();
+    private readonly SaleService _saleService = new();
 
     public void BuyStock(List<Product> products)
     {
@@ -65,7 +66,13 @@ public class SalesMenu(CartService cart)
         {
             new ShowProducts().StockMenu(products);
             Console.WriteLine("Put the ID of the product you are going to buy");
-            int.TryParse(Console.ReadLine(), out int idfound);
+            int idfound;
+            while (!int.TryParse(Console.ReadLine(), out idfound))
+            {
+                Console.WriteLine("Error: You must enter a valid number for the ID.");
+                Console.WriteLine("Put the ID of the product you are going to buy");
+            }
+
             Product found = new InventoryService().FoundProduct(products, idfound);
 
             if (found == null)
@@ -75,7 +82,7 @@ public class SalesMenu(CartService cart)
             }
 
             Console.WriteLine("ID of the product found, the name is:" + found.Name);
-            Console.WriteLine("The price of the product is: " + found.Price);
+            Console.WriteLine("The sale price of the product is: " + found.Price);
             Console.WriteLine("The stock of the product is: " + found.Stock);
             Console.WriteLine("How many do you want to buy?");
 
@@ -83,16 +90,23 @@ public class SalesMenu(CartService cart)
             int quantity = 0;
             while (!valid)
             {
-                valid = int.TryParse(Console.ReadLine(), out quantity);
-                if (quantity > found.Stock || quantity <= 0)
+                string input = Console.ReadLine();
+
+                if (!int.TryParse(input, out quantity))
                 {
-                    valid = false;
-                }
-                if (!valid)
-                {
-                    Console.WriteLine("Error: you have to put a number greater than 0 and equal to or less than the stock");
+                    Console.WriteLine("Error: You must enter a valid number.");
                     Console.WriteLine("How many do you want to buy?");
+                    continue;
                 }
+
+                if (quantity <= 0 || quantity > found.Stock)
+                {
+                    Console.WriteLine($"Error: Quantity must be greater than 0 and not exceed available stock ({found.Stock}).");
+                    Console.WriteLine("How many do you want to buy?");
+                    continue;
+                }
+
+                valid = true;
             }
 
             _cart.AddProduct(found, quantity);
@@ -127,10 +141,17 @@ public class SalesMenu(CartService cart)
             return;
         }
 
-        var order = _orderService.ConfirmOrder(_cart, products);
-        if (order != null)
+        // INTEGRACIÓN CON SALE SERVICE
+        var sale = _saleService.ProcessSale(_cart, products);
+
+        if (sale != null)
         {
-            Console.WriteLine($"Payment successful. Order #{order.Id} confirmed. Total: {order.Total}. Status: {order.Status}");
+            Console.WriteLine($"Payment successful. Order #{sale.Id} confirmed.");
+            Console.WriteLine($"   Total: {sale.Total}$ | Cost: {sale.TotalCost}$ | Profit: {sale.Profit}$");
+        }
+        else
+        {
+            Console.WriteLine("Payment failed. Please check the errors above.");
         }
     }
 }
