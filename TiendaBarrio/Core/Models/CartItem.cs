@@ -11,7 +11,7 @@ public class CartItem
         Quantity = quantity;
     }
 
-    public double Subtotal => Product.SPrice * Quantity;
+    public double Subtotal => Product.Price * Quantity;
 
     public void SetQuantity(int quantity)
     {
