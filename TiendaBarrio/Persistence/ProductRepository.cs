@@ -1,15 +1,12 @@
 namespace TiendaBarrio.Persistence;
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
 
 public class ProductRepository
 {
-    private string RutaProductos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
+    private readonly string RutaProductos =
+        Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
 
     public List<Product> LoadProducts()
     {
@@ -27,10 +24,17 @@ public class ProductRepository
             if (lineSplit.Length < 5) 
                 continue;
 
-            if (!int.TryParse(lineSplit[0], out int id))
+            if (!int.TryParse(lineSplit[0].Trim(), out int id))
                 continue;
 
-            string name = lineSplit[1];
+            string name = lineSplit[1].Trim();
+
+            if (!double.TryParse(
+                    lineSplit[2].Trim(),
+                    NumberStyles.Any,
+                    CultureInfo.InvariantCulture,
+                    out double sprice))
+                continue;
 
             // Normaliza el precio de venta
             string priceRaw = lineSplit[2].Replace("$", string.Empty).Trim();
@@ -61,6 +65,7 @@ public class ProductRepository
         string[] lines = products
             .Select(p => $"{p.ID};{p.Name};{p.Price};{p.PurchasePrice};{p.Stock}")
             .ToArray();
+
         File.WriteAllLines(RutaProductos, lines);
     }
 }

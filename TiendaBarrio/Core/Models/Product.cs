@@ -46,7 +46,7 @@ public class Product
             Stock = stock;
         }
     }
-    
+
     public void ReduceStock(int quantity)
     {
         // Validación: Solo reducir si la cantidad es positiva y no supera el stock
@@ -59,10 +59,9 @@ public class Product
             Console.WriteLine($"Error: No hay suficiente stock. Stock actual: {Stock}");
         }
     }
-    
+
     public void IncreaseStock(int quantity)
     {
-        // Validación: Solo aumentar si la cantidad es positiva
         if (quantity > 0)
         {
             Stock += quantity;

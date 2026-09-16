@@ -1,4 +1,5 @@
 namespace TiendaBarrio.Inventario;
+
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Utils;
@@ -9,10 +10,12 @@ public class InventoryService()
     {
         Product found = null;
         found = products.FirstOrDefault(p => p.ID == idfound);
+
         if (found == null)
         {
             Console.WriteLine("ID product not found");
         }
+
         return found;
     }
 
@@ -28,10 +31,15 @@ public class InventoryService()
             Console.WriteLine("1. Add stock");
             Console.WriteLine("2. Add new product");
             Console.WriteLine("\nSelect an option: ");
+
             exit = int.TryParse(Console.ReadLine(), out int option);
+
             while (exit)
             {
-                if (option == 0) { break; }
+                if (option == 0)
+                {
+                    break;
+                }
 
                 if (option == 1)
                 {
@@ -61,7 +69,9 @@ public class InventoryService()
                     }
 
                     found.IncreaseStock(quantity);
+
                     new ProductRepository().SaveProducts(products);
+
                     Console.WriteLine("The new stock of the product is: " + found.Stock);
                     break;
                 }
