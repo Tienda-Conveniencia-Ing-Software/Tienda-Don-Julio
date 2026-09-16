@@ -6,14 +6,19 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Core.Config;
 
 public class SaleRepository
 {
-    private string RutaVentas = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "ventas.txt");
+    // Ruta centralizada en DataConfig
+    private string RutaVentas => DataConfig.VentasFile;
 
     public List<Sale> LoadSales()
     {
         var sales = new List<Sale>();
+
+        // Asegura que la carpeta Data exista
+        DataConfig.EnsureDataFolderExists();
 
         if (!File.Exists(RutaVentas))
             return sales;
@@ -26,9 +31,6 @@ public class SaleRepository
             string[] parts = line.Split('|');
             if (parts.Length < 5)
                 continue;
-
-            // Formato: Id;Fecha;Total;TotalCost;Profit|ProductId,ProductName,Quantity,UnitPrice,UnitCost|...
-            // Ejemplo: 1;2026-09-14 10:30:00;5000;3000;2000|1,Arroz,2,2500,1500
 
             if (!int.TryParse(parts[0], out int id))
                 continue;
@@ -54,7 +56,6 @@ public class SaleRepository
                 Profit = profit
             };
 
-            // Leer detalles (a partir del índice 5)
             for (int i = 5; i < parts.Length; i++)
             {
                 string[] detailParts = parts[i].Split(',');
@@ -87,29 +88,28 @@ public class SaleRepository
 
     public void SaveSale(Sale sale)
     {
-        // VALIDACIÓN: La venta no puede ser nula
         if (sale == null)
         {
-            Console.WriteLine("Error: No se puede guardar una venta nula.");
+            Console.WriteLine("❌ Error: No se puede guardar una venta nula.");
             return;
         }
 
-        // VALIDACIÓN: La venta debe tener al menos un detalle
         if (sale.Details == null || sale.Details.Count == 0)
         {
-            Console.WriteLine("Error: No se puede guardar una venta sin productos.");
+            Console.WriteLine("❌ Error: No se puede guardar una venta sin productos.");
             return;
         }
 
         try
         {
-            // Formato: Id;Fecha;Total;TotalCost;Profit|ProductId,ProductName,Quantity,UnitPrice,UnitCost|...
+            // Asegura que la carpeta Data exista
+            DataConfig.EnsureDataFolderExists();
+
             string details = string.Join("|", sale.Details.Select(d =>
                 $"{d.ProductId},{d.ProductName},{d.Quantity},{d.UnitPrice},{d.UnitCost}"));
 
             string line = $"{sale.Id};{sale.Date:yyyy-MM-dd HH:mm:ss};{sale.Total};{sale.TotalCost};{sale.Profit}|{details}";
 
-            // Si el archivo no existe, lo crea con la primera línea
             if (!File.Exists(RutaVentas))
             {
                 File.WriteAllText(RutaVentas, line + Environment.NewLine);
