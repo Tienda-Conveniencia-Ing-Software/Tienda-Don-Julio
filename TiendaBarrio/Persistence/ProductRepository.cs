@@ -21,8 +21,7 @@ public class ProductRepository
                 continue;
 
             string[] lineSplit = line.Split(';');
-
-            if (lineSplit.Length < 5)
+            if (lineSplit.Length < 5) 
                 continue;
 
             if (!int.TryParse(lineSplit[0].Trim(), out int id))
@@ -37,18 +36,24 @@ public class ProductRepository
                     out double sprice))
                 continue;
 
-            if (!double.TryParse(
-                    lineSplit[3].Trim(),
-                    NumberStyles.Any,
-                    CultureInfo.InvariantCulture,
-                    out double bprice))
+            // Normaliza el precio de venta
+            string priceRaw = lineSplit[2].Replace("$", string.Empty).Trim();
+            priceRaw = priceRaw.Replace(".", "").Replace(",", ".");
+            if (!double.TryParse(priceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double price))
                 continue;
 
-            if (!int.TryParse(lineSplit[4].Trim(), out int stock))
+            // Leer el precio de compra (PurchasePrice)
+            string purchasePriceRaw = lineSplit[3].Replace("$", string.Empty).Trim();
+            purchasePriceRaw = purchasePriceRaw.Replace(".", "").Replace(",", ".");
+            if (!double.TryParse(purchasePriceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double purchasePrice))
+                continue;
+
+            if (!int.TryParse(lineSplit[4], out int stock))
                 stock = 0;
 
-            var product = new Product(id, name, sprice, bprice, stock);
-            products.Add(product);
+            // Pasar purchasePrice al constructor
+            var p = new Product(id, name, price, purchasePrice, stock);
+            products.Add(p);
         }
 
         return products;
@@ -56,8 +61,9 @@ public class ProductRepository
 
     public void SaveProducts(List<Product> products)
     {
+        // Guardar PurchasePrice en el archivo
         string[] lines = products
-            .Select(p => $"{p.ID};{p.Name};{p.SPrice};{p.BPrice};{p.Stock}")
+            .Select(p => $"{p.ID};{p.Name};{p.Price};{p.PurchasePrice};{p.Stock}")
             .ToArray();
 
         File.WriteAllLines(RutaProductos, lines);
