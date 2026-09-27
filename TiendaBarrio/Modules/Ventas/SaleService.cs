@@ -11,20 +11,17 @@ public class SaleService
 {
     private readonly SaleRepository _saleRepository;
     private readonly ProductRepository _productRepository;
+    private readonly FinanceService _financeService;
 
-    public SaleService()
+    public SaleService(FinanceService financeService)
     {
         _saleRepository = new SaleRepository();
         _productRepository = new ProductRepository();
+        _financeService = financeService;
     }
 
-    /// <summary>
-    /// Procesa una venta a partir del carrito de compras.
-    /// Valida stock, calcula totales, disminuye inventario y guarda la venta.
-    /// </summary>
     public Sale ProcessSale(CartService cart, List<Product> products)
     {
-        // VALIDACIÓN: El carrito no puede estar vacío
         if (cart == null || cart.Items.Count == 0)
         {
             Console.WriteLine("❌ Error: El carrito está vacío. No se puede procesar la venta.");
@@ -34,7 +31,6 @@ public class SaleService
         var sale = new Sale();
         sale.Id = _saleRepository.GetNextSaleId();
 
-        // VALIDACIÓN: Verificar stock de todos los productos ANTES de procesar
         foreach (var item in cart.Items)
         {
             var product = products.FirstOrDefault(p => p.ID == item.Product.ID);
@@ -52,36 +48,30 @@ public class SaleService
             }
         }
 
-        // Si todas las validaciones pasan, procesamos la venta
         foreach (var item in cart.Items)
         {
             var product = products.First(p => p.ID == item.Product.ID);
 
-            // Disminuir stock
             product.ReduceStock(item.Quantity);
 
-            // Crear detalle de venta
             var detail = new SaleDetail(
                 product.ID,
                 product.Name,
                 item.Quantity,
-                product.Price,           // Precio de venta
-                product.PurchasePrice    // Precio de compra
+                product.Price,
+                product.PurchasePrice
             );
 
             sale.Details.Add(detail);
         }
 
-        // Calcular totales (total, costo, ganancia)
         sale.CalculateTotals();
 
-        // Guardar la venta en el archivo
         _saleRepository.SaveSale(sale);
-
-        // Guardar los productos actualizados (con el stock disminuido)
         _productRepository.SaveProducts(products);
 
-        // Limpiar el carrito después de la venta
+        _financeService.RegisterIncome(sale.Total, $"Venta #{sale.Id}");
+
         cart.Items.Clear();
 
         Console.WriteLine($"Venta #{sale.Id} procesada exitosamente.");

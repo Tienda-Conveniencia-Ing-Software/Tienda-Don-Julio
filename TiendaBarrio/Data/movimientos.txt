@@ -3,3 +3,4 @@
 3;Ingreso;260000;Venta pedido #1;2026-09-05 20:36:16
 4;Ingreso;4500000;ingreso de mis cojones peludos;2026-09-05 20:36:44
 5;Gasto;676767;iva pa la perra de chupiplu;2026-09-05 20:37:11
+6;CompraInventario;1200000;Reposicion de stock: guaracha x30;2026-09-27 15:55:15
