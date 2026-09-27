@@ -9,6 +9,7 @@ using TiendaBarrio.Utils;
 public class MainMenu()
 {
     private readonly CartService _cart = new();
+    private readonly FinanceService _finance = new();
 
     public void Start()
     {
@@ -38,12 +39,12 @@ public class MainMenu()
                     break;
 
                 case 2:
-                    new SalesMenu(_cart).BuyStock(products);
+                    new SalesMenu(_cart, _finance).BuyStock(products);
                     new Pause().pause();
                     break;
 
                 case 3:
-                    new InventoryService().AddStock(products);
+                    new InventoryMenu(_finance).Start(products);
                     new Pause().pause();
                     break;
 
@@ -64,7 +65,7 @@ public class MainMenu()
             Console.WriteLine("0. Exit ");
             Console.WriteLine("1. see stock");
             Console.WriteLine("2. buy");
-            Console.WriteLine("3. add stock");
+            Console.WriteLine("3. Inventory");
             Console.WriteLine("4. finance / balance");
             Console.WriteLine("\nSelect an option: ");
         }
