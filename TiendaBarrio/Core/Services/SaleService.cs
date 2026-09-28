@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Core.Services;
 using TiendaBarrio.Persistence;
 
 public class SaleService
@@ -20,11 +19,10 @@ public class SaleService
         _financeService = financeService;
     }
 
-    public Sale ProcessSale(CartService cart, List<Product> products)
+    public Sale? ProcessSale(CartService cart, List<Product> products)
     {
         if (cart == null || cart.Items.Count == 0)
         {
-            Console.WriteLine("❌ Error: El carrito está vacío. No se puede procesar la venta.");
             return null;
         }
 
@@ -37,13 +35,11 @@ public class SaleService
 
             if (product == null)
             {
-                Console.WriteLine($"❌ Error: Producto '{item.Product.Name}' no encontrado en el inventario.");
                 return null;
             }
 
             if (product.Stock < item.Quantity)
             {
-                Console.WriteLine($"❌ Error: Stock insuficiente para '{product.Name}'. Disponible: {product.Stock}, solicitado: {item.Quantity}.");
                 return null;
             }
         }
@@ -73,9 +69,6 @@ public class SaleService
         _financeService.RegisterIncome(sale.Total, $"Venta #{sale.Id}");
 
         cart.Items.Clear();
-
-        Console.WriteLine($"Venta #{sale.Id} procesada exitosamente.");
-        Console.WriteLine($"   Total: {sale.Total}$ | Costo: {sale.TotalCost}$ | Ganancia: {sale.Profit}$");
 
         return sale;
     }
