@@ -7,14 +7,17 @@ public class OrderService
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly FinanceService _financeService;
     private int _nextId = 1;
 
     public OrderService(
         IOrderRepository orderRepository,
-        IProductRepository productRepository)
+        IProductRepository productRepository,
+        FinanceService financeService)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
+        _financeService = financeService;
     }
 
     public Order? ConfirmOrder(CartService cart, List<Product> products)
@@ -37,6 +40,8 @@ public class OrderService
         order.AdvanceStatus(OrderStatus.Confirmado);
 
         _orderRepository.SaveOrder(order);
+
+        _financeService.RegisterIncome(order.Total, $"Venta pedido #{order.Id}");
 
         cart.Clear();
 

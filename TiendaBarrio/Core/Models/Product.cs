@@ -4,41 +4,42 @@ public class Product
 {
     public int ID { get; }
     public string Name { get; }
-    public double SPrice { get; private set; }
-    public double BPrice { get; private set; }
+    public double Price { get; }           
+    public double PurchasePrice { get; }   // NUEVO: Precio de compra (costo)
     public int Stock { get; private set; }
 
-    public Product(int id, string name, double sprice, double bprice, int stock)
+    public Product(int id, string name, double price, double purchasePrice, int stock)
     {
         ID = id;
         Name = name;
-
-        // Validación: el precio de venta no puede ser negativo
-        if (sprice < 0)
+        
+        // Validación: El precio de venta no puede ser negativo
+        if (price < 0)
         {
             Console.WriteLine("Advertencia: El precio de venta no puede ser negativo. Se asignará 0.");
-            SPrice = 0;
+            Price = 0;
         }
         else
         {
-            SPrice = sprice;
+            Price = price;
         }
-
-        // Validación: el precio de compra no puede ser negativo
-        if (bprice < 0)
+        
+        // Validación: El precio de compra no puede ser negativo
+        if (purchasePrice < 0)
         {
             Console.WriteLine("Advertencia: El precio de compra no puede ser negativo. Se asignará 0.");
-            BPrice = 0;
+            PurchasePrice = 0;
         }
         else
         {
-            BPrice = bprice;
+            PurchasePrice = purchasePrice;
         }
-
-        // Validación: el stock no puede ser negativo
+        
+        // Validación: El stock no puede ser negativo
         if (stock < 0)
         {
             Console.WriteLine("Advertencia: El stock no puede ser negativo. Se asignará 0.");
+            Stock = 0;
         }
         else
         {
@@ -48,6 +49,7 @@ public class Product
 
     public void ReduceStock(int quantity)
     {
+        // Validación: Solo reducir si la cantidad es positiva y no supera el stock
         if (quantity > 0 && quantity <= Stock)
         {
             Stock -= quantity;

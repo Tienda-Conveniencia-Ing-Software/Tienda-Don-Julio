@@ -2,113 +2,112 @@ namespace TiendaBarrio.Core.Services;
 
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence;
-using TiendaBarrio.Utils;
 
-public class InventoryService()
+public class InventoryService
 {
-    public Product? FoundProduct(List<Product> products, int idfound)
+    private readonly ProductRepository _productRepository;
+    private readonly FinanceService _financeService;
+    private const int LowStockThreshold = 5;
+
+    public InventoryService(ProductRepository productRepository, FinanceService financeService)
     {
-        Product? found = products.FirstOrDefault(p => p.ID == idfound);
-
-        if (found == null)
-        {
-            Console.WriteLine("ID product not found");
-        }
-
-        return found;
+        _productRepository = productRepository;
+        _financeService = financeService;
     }
 
-    public void AddStock(List<Product> products)
+    public Product? FindProduct(List<Product> products, int id)
     {
-        try
+        return products.FirstOrDefault(p => p.ID == id);
+    }
+
+    public Product RegisterProduct(List<Product> products, string name, double price, double purchasePrice, int stock)
+    {
+        int id = products.Count > 0 ? products.Max(p => p.ID) + 1 : 1;
+        var product = new Product(id, name, price, purchasePrice, stock);
+        products.Add(product);
+
+        _productRepository.SaveProducts(products);
+
+        if (stock > 0)
         {
-            Console.WriteLine("Existing stock");
-            new ShowProducts().StockMenu(products);
-
-            Console.WriteLine("You want more stock or add new product?");
-            bool exit = false;
-
-            Console.WriteLine("0. Exit ");
-            Console.WriteLine("1. Add stock");
-            Console.WriteLine("2. Add new product");
-            Console.WriteLine("\nSelect an option: ");
-
-            exit = int.TryParse(Console.ReadLine(), out int option);
-
-            while (exit)
-            {
-                if (option == 0)
-                {
-                    break;
-                }
-
-                if (option == 1)
-                {
-                    Console.WriteLine("Put the ID of the product you are searching");
-                    int.TryParse(Console.ReadLine(), out int idfound);
-
-                    Product? found = FoundProduct(products, idfound);
-
-                    if (found == null)
-                    {
-                        option = 0;
-                        continue;
-                    }
-
-                    Console.WriteLine("Put the amount to add");
-                    int.TryParse(Console.ReadLine(), out int quantity);
-
-                    found.IncreaseStock(quantity);
-
-                    new ProductRepository().SaveProducts(products);
-
-                    Console.WriteLine("The new stock of the product is: " + found.Stock);
-
-                    option = 0;
-                }
-                else if (option == 2)
-                {
-                    Console.WriteLine("Set name to the product");
-                    string name = " " + (Console.ReadLine() ?? "") + " ";
-
-                    int id = products[products.Count - 1].ID + 1;
-
-                    Console.WriteLine("Set sale price to the product");
-                    double.TryParse(Console.ReadLine(), out double sprice);
-
-                    Console.WriteLine("Set buy price to the product");
-                    double.TryParse(Console.ReadLine(), out double bprice);
-
-                    Console.WriteLine("Set stock to the product");
-                    int.TryParse(Console.ReadLine(), out int stock);
-
-                    Product p = new Product(id, name, sprice, bprice, stock);
-
-                    products.Add(p);
-
-                    Console.WriteLine(
-                        "The new product is:\n" +
-                        "[" + products[products.Count - 1].ID + "] " +
-                        products[products.Count - 1].Name + " " +
-                        products[products.Count - 1].SPrice + "$ " +
-                        products[products.Count - 1].Stock
-                    );
-
-                    option = 0;
-                }
-                else
-                {
-                    Console.WriteLine("Option not available");
-                    exit = false;
-                    break;
-                }
-            }
-
-            new ProductRepository().SaveProducts(products);
+            double cost = purchasePrice * stock;
+            _financeService.RegisterInventoryPurchase(cost, $"Producto nuevo: {name.Trim()} x{stock}");
         }
-        catch (Exception e)
+
+        return product;
+    }
+
+    public bool UpdateProduct(List<Product> products, int id, string? newName, double? newPrice, double? newPurchasePrice)
+    {
+        var product = FindProduct(products, id);
+        if (product == null)
         {
-            Console.WriteLine("Exception: " + e.Message);
+            return false;
         }
+
+        int index = products.IndexOf(product);
+
+        string finalName = newName ?? product.Name;
+        double finalPrice = newPrice ?? product.Price;
+        double finalPurchasePrice = newPurchasePrice ?? product.PurchasePrice;
+
+        var updated = new Product(product.ID, finalName, finalPrice, finalPurchasePrice, product.Stock);
+        products[index] = updated;
+
+        _productRepository.SaveProducts(products);
+        return true;
+    }
+
+    public bool DeleteProduct(List<Product> products, int id)
+    {
+        var product = FindProduct(products, id);
+        if (product == null)
+        {
+            return false;
+        }
+
+        products.Remove(product);
+        _productRepository.SaveProducts(products);
+        return true;
+    }
+
+    public List<Product> GetAllProducts(List<Product> products)
+    {
+        return products;
+    }
+
+    public bool IncreaseStock(List<Product> products, int id, int quantity)
+    {
+        var product = FindProduct(products, id);
+        if (product == null || quantity <= 0)
+        {
+            return false;
+        }
+
+        product.IncreaseStock(quantity);
+        _productRepository.SaveProducts(products);
+
+        double cost = product.PurchasePrice * quantity;
+        _financeService.RegisterInventoryPurchase(cost, $"Reposicion de stock: {product.Name} x{quantity}");
+
+        return true;
+    }
+
+    public bool DecreaseStock(List<Product> products, int id, int quantity)
+    {
+        var product = FindProduct(products, id);
+        if (product == null || quantity <= 0 || quantity > product.Stock)
+        {
+            return false;
+        }
+
+        product.ReduceStock(quantity);
+        _productRepository.SaveProducts(products);
+        return true;
+    }
+
+    public List<Product> GetLowStockProducts(List<Product> products)
+    {
+        return products.Where(p => p.Stock <= LowStockThreshold).ToList();
     }
 }

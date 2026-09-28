@@ -1,40 +1,36 @@
 namespace TiendaBarrio.Persistence;
 
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence.Interfaces;
+using TiendaBarrio.Core.Config;
 
 public class OrderRepository : IOrderRepository
 {
-    private string RutaPedidos = Path.Combine(
-        AppContext.BaseDirectory,
-        "..", "..", "..",
-        "Data",
-        "pedidos.txt"
-    );
+    // Ruta centralizada en DataConfig
+    private string RutaPedidos => DataConfig.PedidosFile;
 
     public void SaveOrder(Order order)
     {
-        // Format:
-        // OrderId;Status;CreatedAt;Total;ProductId:Qty,ProductId:Qty,...
+        // Asegura que la carpeta Data exista
+        DataConfig.EnsureDataFolderExists();
 
-        string itemsPart = string.Join(
-            ",",
-            order.Items.Select(i => $"{i.Product.ID}:{i.Quantity}")
-        );
-
-        string line =
-            $"{order.Id};" +
-            $"{order.Status};" +
-            $"{order.CreatedAt:yyyy-MM-dd HH:mm:ss};" +
-            $"{order.Total.ToString(CultureInfo.InvariantCulture)};" +
-            $"{itemsPart}";
+        // Format: OrderId;Status;CreatedAt;Total;ProductId:Qty,ProductId:Qty,...
+        string itemsPart = string.Join(",", order.Items.Select(i => $"{i.Product.ID}:{i.Quantity}"));
+        string line = $"{order.Id};{order.Status};{order.CreatedAt:yyyy-MM-dd HH:mm:ss};{order.Total.ToString(CultureInfo.InvariantCulture)};{itemsPart}";
 
         File.AppendAllLines(RutaPedidos, new[] { line });
     }
 
     public List<string> LoadOrderLines()
     {
+        // Asegura que la carpeta Data exista
+        DataConfig.EnsureDataFolderExists();
+
         if (!File.Exists(RutaPedidos))
             return new List<string>();
 

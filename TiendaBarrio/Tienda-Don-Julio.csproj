@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Modules\Inventario\" />
+	  <Folder Include="Modules\Ventas\" />
 	</ItemGroup>
 
 </Project>

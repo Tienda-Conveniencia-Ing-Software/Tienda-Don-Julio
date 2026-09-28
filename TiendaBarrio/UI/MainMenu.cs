@@ -1,7 +1,8 @@
 namespace TiendaBarrio.UI;
 
-using Core.Services;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Core.Services;
+
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
@@ -9,11 +10,14 @@ using TiendaBarrio.Utils;
 public class MainMenu()
 {
     private readonly CartService _cart = new();
+    private readonly FinanceService _finance = new();
     private readonly IProductRepository _productRepository = new ProductRepository();
     private readonly IOrderRepository _orderRepository = new OrderRepository();
+    private readonly ShowProducts _showProducts = new ShowProducts();
+    private readonly FinanceMenu _financeMenu = new FinanceMenu();
     public void Start()
     {
-        List<Product> products = _productRepository.LoadProducts();
+        List<Product> products = new ProductRepository().LoadProducts();
         bool exit = true;
         while (exit)
         {
@@ -34,21 +38,22 @@ public class MainMenu()
                     break;
 
                 case 1:
-                    new ShowProducts().StockMenu(products);
+                    _showProducts.StockMenu(products);
                     new Pause().pause();
                     break;
 
                 case 2:
-                    new SalesMenu(
-                        _cart,
-                        _orderRepository,
-                        _productRepository
-                    ).BuyStock(products);
+                    new SalesMenu(_cart, _finance).BuyStock(products);
                     new Pause().pause();
                     break;
 
                 case 3:
-                    new InventoryService().AddStock(products);
+                    new InventoryMenu(_finance).Start(products);
+                    new Pause().pause();
+                    break;
+
+                case 4:
+                    _financeMenu.Start();
                     new Pause().pause();
                     break;
 
@@ -64,7 +69,8 @@ public class MainMenu()
             Console.WriteLine("0. Exit ");
             Console.WriteLine("1. see stock");
             Console.WriteLine("2. buy");
-            Console.WriteLine("3. add stock");
+            Console.WriteLine("3. Inventory");
+            Console.WriteLine("4. finance / balance");
             Console.WriteLine("\nSelect an option: ");
         }
     }
