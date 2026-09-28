@@ -8,15 +8,15 @@ public class CartService
 
     public List<CartItem> Items => _items;
 
-    public void AddProduct(Product product, int quantity)
+    public bool AddProduct(Product product, int quantity)
     {
         if (quantity <= 0 || quantity > product.Stock)
         {
-            Console.WriteLine("Invalid quantity or not enough stock.");
-            return;
+            return false;
         }
 
         var existing = _items.FirstOrDefault(i => i.Product.ID == product.ID);
+
         if (existing != null)
         {
             existing.SetQuantity(existing.Quantity + quantity);
@@ -25,30 +25,32 @@ public class CartService
         {
             _items.Add(new CartItem(product, quantity));
         }
+
+        return true;
     }
 
-    public void UpdateQuantity(int productId, int newQuantity)
+    public bool UpdateQuantity(int productId, int newQuantity)
     {
         var item = _items.FirstOrDefault(i => i.Product.ID == productId);
+
         if (item == null)
         {
-            Console.WriteLine("Product not found in cart.");
-            return;
+            return false;
         }
 
         if (newQuantity <= 0)
         {
             _items.Remove(item);
-            return;
+            return true;
         }
 
         if (newQuantity > item.Product.Stock)
         {
-            Console.WriteLine("Not enough stock.");
-            return;
+            return false;
         }
 
         item.SetQuantity(newQuantity);
+        return true;
     }
 
     public void RemoveItem(int productId)

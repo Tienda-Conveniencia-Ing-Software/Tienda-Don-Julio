@@ -2,8 +2,9 @@ namespace TiendaBarrio.Persistence;
 
 using System.Globalization;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Interfaces;
 
-public class ProductRepository
+public class ProductRepository : IProductRepository
 {
     private readonly string RutaProductos =
         Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "productos.txt");
