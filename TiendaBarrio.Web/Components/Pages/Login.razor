@@ -1,0 +1,78 @@
+@page "/login"
+@using TiendaBarrio.Core.Services
+@using TiendaBarrio.Core.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Iniciar Sesión - TiendaBarrio</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h3>Iniciar Sesión</h3>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorMessage
+                    </div>
+                }
+
+                <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico</label>
+                        <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="ejemplo@correo.com" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="******" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+
+    private void HandleLogin()
+    {
+        try
+        {
+            errorMessage = null;
+
+            // TODO: Persona 1 (API) - Cuando los Controllers estén listos en Docker,
+            // reemplazar esta llamada directa por una petición HTTP POST a /api/auth/login.
+            Cliente clienteAutenticado = AuthService.Login(loginModel.Email, loginModel.Password);
+
+            // Si es un trabajador o cliente exitoso, redirigimos
+            if (clienteAutenticado.EsTrabajador())
+            {
+                Navigation.NavigateTo("/inventario");
+            }
+            else
+            {
+                Navigation.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
