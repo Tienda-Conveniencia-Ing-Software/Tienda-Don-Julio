@@ -43,7 +43,16 @@ public class ClienteRepository
 
             try
             {
-                var c = new Cliente(id, nombre, cedula, telefono, email);
+                var c = new Cliente
+                {
+                    Id = id,
+                    Nombre = nombre,
+                    Cedula = cedula,
+                    Telefono = telefono,
+                    Email = email,
+                    PasswordHash = parts.Length > 5 ? parts[5] : "HASH_DEFAULT",
+                    Role = parts.Length > 6 ? parts[6] : "Cliente"
+                };
                 clientes.Add(c);
             }
             catch (ArgumentException)

@@ -2,11 +2,13 @@ namespace TiendaBarrio.UI;
 
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
+using TiendaBarrio.Persistence;
+using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
 
 public class FinanceMenu
 {
-    private readonly FinanceService _financeService = new();
+        private readonly FinanceService _financeService = new FinanceService(new CashRepository());
 
     public void Start()
     {

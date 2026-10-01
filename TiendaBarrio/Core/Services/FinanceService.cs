@@ -1,17 +1,23 @@
 namespace TiendaBarrio.Core.Services;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence;
+using TiendaBarrio.Persistence.Interfaces;
 
 public class FinanceService
 {
-    private readonly CashRepository _repository = new();
+    private readonly ICashRepository _repository;
     private int _nextId = 1;
 
-    public FinanceService()
+    // Inyección de dependencias para desacoplar el repositorio
+    public FinanceService(ICashRepository repository)
     {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+
         var existing = _repository.LoadMovements();
-        if (existing.Count > 0)
+        if (existing != null && existing.Count > 0)
         {
             _nextId = existing.Max(m => m.Id) + 1;
         }

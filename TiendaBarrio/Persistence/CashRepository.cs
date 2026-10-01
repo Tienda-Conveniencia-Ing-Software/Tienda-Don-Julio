@@ -2,8 +2,9 @@ namespace TiendaBarrio.Persistence;
 
 using System.Globalization;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Interfaces;
 
-public class CashRepository
+public class CashRepository : ICashRepository
 {
     private string RutaMovimientos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "movimientos.txt");
 
