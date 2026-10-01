@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 
 public class FinanceService
