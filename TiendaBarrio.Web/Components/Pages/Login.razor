@@ -20,7 +20,8 @@
                     </div>
                 }
 
-                <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                <!-- Se agrega FormName para evitar el error en peticiones POST -->
+                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="login-form">
                     <DataAnnotationsValidator />
                     
                     <div class="mb-3">
@@ -41,7 +42,10 @@
 </div>
 
 @code {
-    private LoginModel loginModel = new();
+    // Permite que Blazor vincule los datos del formulario POST de forma segura
+    [SupplyParameterFromForm]
+    private LoginModel loginModel { get; set; } = new();
+
     private string? errorMessage;
 
     private void HandleLogin()
