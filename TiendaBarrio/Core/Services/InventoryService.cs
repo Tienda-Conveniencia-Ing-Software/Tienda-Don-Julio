@@ -1,18 +1,30 @@
 namespace TiendaBarrio.Core.Services;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence;
+using TiendaBarrio.Persistence.Interfaces;
 
 public class InventoryService
 {
-    private readonly ProductRepository _productRepository;
+    private readonly IProductRepository _productRepository;
     private readonly FinanceService _financeService;
     private const int LowStockThreshold = 5;
 
-    public InventoryService(ProductRepository productRepository, FinanceService financeService)
+    public InventoryService(IProductRepository productRepository, FinanceService financeService)
     {
-        _productRepository = productRepository;
-        _financeService = financeService;
+        _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _financeService = financeService ?? throw new ArgumentNullException(nameof(financeService));
+    }
+
+    // Método privado para asegurar que la acción sea realizada por un trabajador
+    private static void ValidarPermisoTrabajador(Cliente usuario)
+    {
+        if (usuario == null || !usuario.EsTrabajador())
+        {
+            throw new UnauthorizedAccessException("Acción denegada. Se requieren permisos de Trabajador para modificar el inventario.");
+        }
     }
 
     public Product? FindProduct(List<Product> products, int id)
@@ -20,8 +32,22 @@ public class InventoryService
         return products.FirstOrDefault(p => p.ID == id);
     }
 
-    public Product RegisterProduct(List<Product> products, string name, double price, double purchasePrice, int stock)
+    // Consulta pública: cualquier usuario o cliente puede listar/ver productos
+    public List<Product> GetAllProducts(List<Product> products)
     {
+        return products;
+    }
+
+    public List<Product> GetLowStockProducts(List<Product> products)
+    {
+        return products.Where(p => p.Stock <= LowStockThreshold).ToList();
+    }
+
+    // Acciones administrativas protegidas por rol
+    public Product RegisterProduct(Cliente usuario, List<Product> products, string name, double price, double purchasePrice, int stock)
+    {
+        ValidarPermisoTrabajador(usuario);
+
         int id = products.Count > 0 ? products.Max(p => p.ID) + 1 : 1;
         var product = new Product(id, name, price, purchasePrice, stock);
         products.Add(product);
@@ -37,8 +63,10 @@ public class InventoryService
         return product;
     }
 
-    public bool UpdateProduct(List<Product> products, int id, string? newName, double? newPrice, double? newPurchasePrice)
+    public bool UpdateProduct(Cliente usuario, List<Product> products, int id, string? newName, double? newPrice, double? newPurchasePrice)
     {
+        ValidarPermisoTrabajador(usuario);
+
         var product = FindProduct(products, id);
         if (product == null)
         {
@@ -58,8 +86,10 @@ public class InventoryService
         return true;
     }
 
-    public bool DeleteProduct(List<Product> products, int id)
+    public bool DeleteProduct(Cliente usuario, List<Product> products, int id)
     {
+        ValidarPermisoTrabajador(usuario);
+
         var product = FindProduct(products, id);
         if (product == null)
         {
@@ -71,13 +101,10 @@ public class InventoryService
         return true;
     }
 
-    public List<Product> GetAllProducts(List<Product> products)
+    public bool IncreaseStock(Cliente usuario, List<Product> products, int id, int quantity)
     {
-        return products;
-    }
+        ValidarPermisoTrabajador(usuario);
 
-    public bool IncreaseStock(List<Product> products, int id, int quantity)
-    {
         var product = FindProduct(products, id);
         if (product == null || quantity <= 0)
         {
@@ -93,8 +120,10 @@ public class InventoryService
         return true;
     }
 
-    public bool DecreaseStock(List<Product> products, int id, int quantity)
+    public bool DecreaseStock(Cliente usuario, List<Product> products, int id, int quantity)
     {
+        ValidarPermisoTrabajador(usuario);
+
         var product = FindProduct(products, id);
         if (product == null || quantity <= 0 || quantity > product.Stock)
         {
@@ -104,10 +133,5 @@ public class InventoryService
         product.ReduceStock(quantity);
         _productRepository.SaveProducts(products);
         return true;
-    }
-
-    public List<Product> GetLowStockProducts(List<Product> products)
-    {
-        return products.Where(p => p.Stock <= LowStockThreshold).ToList();
     }
 }
