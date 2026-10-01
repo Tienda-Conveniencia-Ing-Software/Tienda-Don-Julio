@@ -10,7 +10,7 @@ using TiendaBarrio.Utils;
 public class MainMenu()
 {
     private readonly CartService _cart = new();
-    private readonly FinanceService _finance = new();
+    private readonly FinanceService _finance = new FinanceService(new CashRepository());
     private readonly IProductRepository _productRepository = new ProductRepository();
     private readonly IOrderRepository _orderRepository = new OrderRepository();
     private readonly ShowProducts _showProducts = new ShowProducts();

@@ -3,12 +3,12 @@ namespace TiendaBarrio.Core.Models;
 public class Cliente
 {
     public int Id { get; set; }
-    public string Nombre { get; set; }
-    public string Cedula { get; set; }
-    public string Telefono { get; set; }
-    public string Email { get; set; }
-    public string PasswordHash { get; set; }
-    public string Role { get; set; } // "Trabajador" o "Cliente"
+    public string Nombre { get; set; } = string.Empty;
+    public string Cedula { get; set; } = string.Empty;
+    public string Telefono { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = "Cliente"; // "Trabajador" o "Cliente"
 
     // Constructor sin parámetros necesario para Entity Framework Core
     public Cliente()

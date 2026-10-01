@@ -7,6 +7,15 @@ using TiendaBarrio.Utils;
 
 public class InventoryMenu
 {
+    // Un cliente de prueba con rol de Trabajador para no bloquear la consola vieja
+    private readonly Cliente _adminMock = new Cliente
+    {
+        Id = 1,
+        Nombre = "Admin Consola",
+        Cedula = "0000",
+        Role = "Trabajador",
+        PasswordHash = "admin123"
+    };
     private readonly InventoryService _inventoryService;
 
     public InventoryMenu(FinanceService financeService)
@@ -128,7 +137,7 @@ public class InventoryMenu
             return;
         }
 
-        var product = _inventoryService.RegisterProduct(products, name, price, purchasePrice, stock);
+        var product = _inventoryService.RegisterProduct(_adminMock,products, name, price, purchasePrice, stock);
         Console.WriteLine($"Product registered: [{product.ID}] {product.Name}");
     }
 
@@ -153,7 +162,7 @@ public class InventoryMenu
         string purchaseInput = Console.ReadLine() ?? "";
         double? newPurchasePrice = double.TryParse(purchaseInput, out double parsedPurchase) ? parsedPurchase : null;
 
-        bool success = _inventoryService.UpdateProduct(products, id, newName, newPrice, newPurchasePrice);
+        bool success = _inventoryService.UpdateProduct(_adminMock,products, id, newName, newPrice, newPurchasePrice);
         Console.WriteLine(success ? "Product updated." : "Product not found.");
     }
 
@@ -166,7 +175,7 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.DeleteProduct(products, id);
+        bool success = _inventoryService.DeleteProduct(_adminMock,products, id);
         Console.WriteLine(success ? "Product deleted." : "Product not found.");
     }
 
@@ -186,7 +195,7 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.IncreaseStock(products, id, quantity);
+        bool success = _inventoryService.IncreaseStock(_adminMock, products, id, quantity);
         Console.WriteLine(success ? "Stock increased." : "Could not increase stock (check ID or quantity).");
     }
 
@@ -206,7 +215,7 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.DecreaseStock(products, id, quantity);
+        bool success = _inventoryService.DecreaseStock(_adminMock, products, id, quantity);
         Console.WriteLine(success ? "Stock decreased." : "Could not decrease stock (check ID, quantity or available stock).");
     }
 
