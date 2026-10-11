@@ -20,9 +20,18 @@
 - Telefono
 - Email
 
+### Usuario
+- Id_Usuario (PK)
+- Nombre_usuario
+- Email
+- Contraseña_hash
+- Rol
+- Fecha_creacion
+
 ### Venta
 - Id_Venta (PK)
-- Fecha
+- Id_Usuario (FK → Usuario)
+- Fecha_venta
 - Total
 - Total_costo
 - Ganancia
@@ -43,7 +52,7 @@
 - Total
 
 ### Detalle_Pedido
-- Id_Detalle_Pedidos (PK)
+- Id_Detalle_Pedido (PK)
 - Id_Pedido (FK → Pedido)
 - Id_Producto (FK → Producto)
 - Cantidad
@@ -51,6 +60,7 @@
 
 ### Movimiento
 - Id_Movimiento (PK)
+- Id_Usuario (FK → Usuario)
 - Fecha_movimiento
 - Tipo
 - Descripcion
@@ -65,3 +75,5 @@
 | Cliente → Pedido | 1 a N |
 | Pedido → Detalle_Pedido | 1 a N |
 | Producto → Detalle_Pedido | 1 a N |
+| Usuario → Venta | 1 a N |
+| Usuario → Movimiento | 1 a N |
