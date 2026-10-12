@@ -1,50 +1,44 @@
-namespace TiendaBarrio.Persistence;
-
-using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Data;
 using TiendaBarrio.Persistence.Interfaces;
+
+namespace TiendaBarrio.Persistence;
 
 public class CashRepository : ICashRepository
 {
-    private string RutaMovimientos = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Data", "movimientos.txt");
+    private readonly TiendaDbContext _context;
 
-    public void SaveMovement(CashMovement movement)
+    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
+    public CashRepository()
     {
-        // Format: Id;Type;Amount;Description;Date
-        string line = $"{movement.Id};{movement.Type};{movement.Amount.ToString(CultureInfo.InvariantCulture)};{movement.Description};{movement.Date:yyyy-MM-dd HH:mm:ss}";
-        File.AppendAllLines(RutaMovimientos, new[] { line });
+        _context = new TiendaDbContext();
+    }
+
+    // Constructor para Inyección de Dependencias
+    public CashRepository(TiendaDbContext context)
+    {
+        _context = context;
     }
 
     public List<CashMovement> LoadMovements()
     {
-        var movements = new List<CashMovement>();
+        return _context.Movimientos.AsNoTracking().ToList();
+    }
 
-        if (!File.Exists(RutaMovimientos))
-            return movements;
+    public void SaveMovement(CashMovement movement)
+    {
+        _context.Movimientos.Add(movement);
+        _context.SaveChanges();
+    }
 
-        foreach (string rawLine in File.ReadLines(RutaMovimientos))
-        {
-            if (string.IsNullOrWhiteSpace(rawLine))
-                continue;
+    public List<CashMovement> GetMovements()
+    {
+        return LoadMovements();
+    }
 
-            string[] parts = rawLine.Split(';');
-            if (parts.Length < 4)
-                continue;
-
-            if (!int.TryParse(parts[0], out int id))
-                continue;
-
-            if (!Enum.TryParse(parts[1], out MovementType type))
-                continue;
-
-            if (!double.TryParse(parts[2], NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double amount))
-                continue;
-
-            string description = parts[3];
-
-            movements.Add(new CashMovement(id, type, amount, description));
-        }
-
-        return movements;
+    public void AddMovement(CashMovement movement)
+    {
+        SaveMovement(movement);
     }
 }

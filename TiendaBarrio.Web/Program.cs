@@ -24,7 +24,7 @@ builder.Services.AddScoped<InventoryService>();
 // directas por las llamadas HTTP correspondientes usando este HttpClient.
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("http://localhost:5000/") // TODO: Persona 1 - Ajustar puerto/host de Docker
+    BaseAddress = new Uri("http://localhost:5222/")
 });
 
 // Add services to the container.

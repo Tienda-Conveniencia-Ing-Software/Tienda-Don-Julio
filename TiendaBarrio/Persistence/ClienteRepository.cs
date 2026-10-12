@@ -1,139 +1,69 @@
-namespace TiendaBarrio.Persistence;
-
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using TiendaBarrio.Core.Config;
+using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Data;
 using TiendaBarrio.Persistence.Interfaces;
+
+namespace TiendaBarrio.Persistence;
 
 public class ClienteRepository : IClienteRepository
 {
-    // Ruta centralizada en DataConfig
-    private string RutaClientes => DataConfig.ClientesFile;
+    private readonly TiendaDbContext _context;
+
+    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
+    public ClienteRepository()
+    {
+        _context = new TiendaDbContext();
+    }
+
+    // Constructor para Inyección de Dependencias
+    public ClienteRepository(TiendaDbContext context)
+    {
+        _context = context;
+    }
 
     public List<Cliente> LoadClientes()
     {
-        var clientes = new List<Cliente>();
-
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
-
-        if (!File.Exists(RutaClientes))
-            return clientes;
-
-        foreach (string line in File.ReadLines(RutaClientes))
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            // Formato: Id;Nombre;Cedula;Telefono;Email
-            string[] parts = line.Split(';');
-            if (parts.Length < 5)
-                continue;
-
-            if (!int.TryParse(parts[0], out int id))
-                continue;
-
-            string nombre = parts[1];
-            string cedula = parts[2];
-            string telefono = parts[3];
-            string email = parts[4];
-
-            try
-            {
-                var c = new Cliente
-                {
-                    Id = id,
-                    Nombre = nombre,
-                    Cedula = cedula,
-                    Telefono = telefono,
-                    Email = email,
-                    PasswordHash = parts.Length > 5 ? parts[5] : "HASH_DEFAULT",
-                    Role = parts.Length > 6 ? parts[6] : "Cliente"
-                };
-                clientes.Add(c);
-            }
-            catch (ArgumentException)
-            {
-                // Si el cliente tiene datos inválidos, se ignora
-                continue;
-            }
-        }
-
-        return clientes;
+        return _context.Clientes.AsNoTracking().ToList();
     }
 
     public void SaveClientes(List<Cliente> clientes)
     {
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
-
-        string[] lines = clientes
-            .Select(c => $"{c.Id};{c.Nombre};{c.Cedula};{c.Telefono};{c.Email}")
-            .ToArray();
-
-        File.WriteAllLines(RutaClientes, lines);
+        foreach (var cliente in clientes)
+        {
+            AddCliente(cliente);
+        }
     }
+
     public Cliente? GetByEmail(string email)
     {
-        return LoadClientes().FirstOrDefault(c => string.Equals(c.Email, email, System.StringComparison.OrdinalIgnoreCase));
+        return _context.Clientes
+            .AsNoTracking()
+            .FirstOrDefault(c => c.Email.ToLower() == email.ToLower());
     }
 
     public Cliente? GetByCedula(string cedula)
     {
-        return LoadClientes().FirstOrDefault(c => c.Cedula == cedula);
+        return _context.Clientes
+            .AsNoTracking()
+            .FirstOrDefault(c => c.Cedula == cedula);
     }
 
     public void AddCliente(Cliente cliente)
     {
-        var clientes = LoadClientes();
-        clientes.Add(cliente);
-        SaveClientes(clientes);
-    }
-
-    public void UpdateCliente(Cliente cliente)
-    {
-        var clientes = LoadClientes();
-        var index = clientes.FindIndex(c => c.Id == cliente.Id);
-
-        if (index >= 0)
+        var existing = _context.Clientes.FirstOrDefault(c => c.Id == cliente.Id);
+        if (existing != null)
         {
-            clientes[index] = cliente;
-            SaveClientes(clientes);
+            _context.Entry(existing).CurrentValues.SetValues(cliente);
         }
         else
         {
-            Console.WriteLine($"No se encontró el cliente con ID {cliente.Id}.");
+            _context.Clientes.Add(cliente);
         }
+        _context.SaveChanges();
     }
 
-    public void DeleteCliente(int id)
+    public void SaveCliente(Cliente cliente)
     {
-        var clientes = LoadClientes();
-        var cliente = clientes.FirstOrDefault(c => c.Id == id);
-
-        if (cliente != null)
-        {
-            clientes.Remove(cliente);
-            SaveClientes(clientes);
-        }
-        else
-        {
-            Console.WriteLine($"No se encontró el cliente con ID {id}.");
-        }
-    }
-
-    public Cliente GetClienteById(int id)
-    {
-        return LoadClientes().FirstOrDefault(c => c.Id == id);
-    }
-
-    public int GetNextClienteId()
-    {
-        var clientes = LoadClientes();
-        return clientes.Count > 0 ? clientes.Max(c => c.Id) + 1 : 1;
+        AddCliente(cliente);
     }
 }

@@ -1,16 +1,15 @@
 @page "/login"
-@using TiendaBarrio.Core.Services
 @using TiendaBarrio.Core.Models
-@inject AuthService AuthService
+@inject HttpClient Http
 @inject NavigationManager Navigation
 
-<PageTitle>Iniciar Sesión - TiendaBarrio</PageTitle>
+<PageTitle>Login - TiendaBarrio</PageTitle>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
         <div class="card shadow">
-            <div class="card-header bg-primary text-white text-center">
-                <h3>Iniciar Sesión</h3>
+            <div class="card-header bg-primary text-white">
+                <h4 class="card-title mb-0">Iniciar Sesión</h4>
             </div>
             <div class="card-body">
                 @if (!string.IsNullOrEmpty(errorMessage))
@@ -20,18 +19,17 @@
                     </div>
                 }
 
-                <!-- Se agrega FormName para evitar el error en peticiones POST -->
-                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="login-form">
+                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
                     <DataAnnotationsValidator />
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Correo Electrónico</label>
-                        <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="ejemplo@correo.com" />
+                        <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="admin@donjulio.com" />
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Contraseña</label>
-                        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="******" />
+                        <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="******" />
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100">Ingresar</button>
@@ -40,43 +38,56 @@
         </div>
     </div>
 </div>
-
 @code {
-    // Permite que Blazor vincule los datos del formulario POST de forma segura
     [SupplyParameterFromForm]
-    private LoginModel loginModel { get; set; } = new();
+    private LoginRequest loginModel { get; set; } = new();
 
     private string? errorMessage;
 
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
+        if (string.IsNullOrWhiteSpace(loginModel.Email) || string.IsNullOrWhiteSpace(loginModel.Password))
+        {
+            errorMessage = "El correo y la contraseña son obligatorios.";
+            return;
+        }
+
+        bool isSuccess = false;
+
         try
         {
-            errorMessage = null;
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
 
-            // TODO: Persona 1 (API) - Cuando los Controllers estén listos en Docker,
-            // reemplazar esta llamada directa por una petición HTTP POST a /api/auth/login.
-            Cliente clienteAutenticado = AuthService.Login(loginModel.Email, loginModel.Password);
-
-            // Si es un trabajador o cliente exitoso, redirigimos
-            if (clienteAutenticado.EsTrabajador())
+            if (response.IsSuccessStatusCode)
             {
-                Navigation.NavigateTo("/inventario");
+                isSuccess = true;
             }
             else
             {
-                Navigation.NavigateTo("/");
+                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                errorMessage = error?.Message ?? "Credenciales inválidas.";
             }
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = "Error de conexión con la API: " + ex.Message;
+        }
+
+        // Realizamos la navegación fuera del bloque try-catch para evitar atrapar NavigationException
+        if (isSuccess)
+        {
+            Navigation.NavigateTo("/inventario");
         }
     }
 
-    public class LoginModel
+    public class LoginRequest
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class ErrorResponse
+    {
+        public string Message { get; set; } = string.Empty;
     }
 }
