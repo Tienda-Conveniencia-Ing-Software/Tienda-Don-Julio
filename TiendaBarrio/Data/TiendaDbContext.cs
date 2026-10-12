@@ -5,6 +5,12 @@ using TiendaBarrio.Core.Models;
 
 public class TiendaDbContext : DbContext
 {
+    // Constructor por defecto (para instanciación manual)
+    public TiendaDbContext() { }
+
+    // Constructor para Inyección de Dependencias (requerido por Web API y Blazor)
+    public TiendaDbContext(DbContextOptions<TiendaDbContext> options) : base(options) { }
+
     // DbSets (cada uno representa una tabla)
     public DbSet<Product> Productos { get; set; }
     public DbSet<Cliente> Clientes { get; set; }
@@ -15,18 +21,21 @@ public class TiendaDbContext : DbContext
     public DbSet<CartItem> CarritoItems { get; set; }
     public DbSet<CashMovement> Movimientos { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Cadena de conexión con variables de entorno (sin hardcodear)
-        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-        var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
-        var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "neji1514j*";
+        // Solo configura si no ha sido configurado previamente por la Inyección de Dependencias
+        if (!optionsBuilder.IsConfigured)
+        {
+            var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+            var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+            var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
+            var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
+            var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "neji1514j*";
 
-        var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
+            var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
 
-        options.UseNpgsql(connectionString);
+            optionsBuilder.UseNpgsql(connectionString);
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -51,7 +60,7 @@ public class TiendaDbContext : DbContext
             entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Cedula).IsRequired().HasMaxLength(20);
             entity.Property(e => e.Telefono).HasMaxLength(20);
-            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(100); // <-- Cambiado de Correo a Email
         });
 
         // Mapeo: Usuarios
@@ -116,5 +125,24 @@ public class TiendaDbContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(200);
             entity.Property(e => e.Date).IsRequired();
         });
+        string validBcryptedAdminHash = "$2a$11$e8.4WnBkD/N4C6U.6/4l/eJ1R0E/51qO8a7S1N2P3Q4R5S6T7U8V9W";
+
+        modelBuilder.Entity<Cliente>().HasData(new Cliente
+        {
+            Id = 1,
+            Nombre = "Administrador Don Julio",
+            Cedula = "123456789",
+            Telefono = "3001234567",
+            Email = "admin@donjulio.com",
+            PasswordHash = validBcryptedAdminHash,
+            Role = "Trabajador"
+        });
+
+        // Data Seeding: Productos iniciales
+        modelBuilder.Entity<Product>().HasData(
+            new Product { ID = 1, Name = "Arroz 1kg", Price = 4500, PurchasePrice = 3500, Stock = 50 },
+            new Product { ID = 2, Name = "Leche 1L", Price = 3800, PurchasePrice = 3000, Stock = 30 }
+        );
     }
+
 }

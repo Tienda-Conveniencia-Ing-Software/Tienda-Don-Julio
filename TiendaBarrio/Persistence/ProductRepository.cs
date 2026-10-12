@@ -1,74 +1,45 @@
-namespace TiendaBarrio.Persistence;
-
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Data;
 using TiendaBarrio.Persistence.Interfaces;
-using TiendaBarrio.Core.Config;
+
+namespace TiendaBarrio.Persistence;
 
 public class ProductRepository : IProductRepository
 {
-    // Ruta centralizada en DataConfig
-    private string RutaProductos => DataConfig.ProductosFile;
+    private readonly TiendaDbContext _context;
+
+    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
+    public ProductRepository()
+    {
+        _context = new TiendaDbContext();
+    }
+
+    // Constructor para Inyección de Dependencias
+    public ProductRepository(TiendaDbContext context)
+    {
+        _context = context;
+    }
 
     public List<Product> LoadProducts()
     {
-        var products = new List<Product>();
-
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
-
-        if (!File.Exists(RutaProductos))
-            return products;
-
-        foreach (string line in File.ReadLines(RutaProductos))
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            string[] lineSplit = line.Split(';');
-            if (lineSplit.Length < 5)
-                continue;
-
-            if (!int.TryParse(lineSplit[0].Trim(), out int id))
-                continue;
-
-            string name = lineSplit[1].Trim();
-
-            // Normaliza el precio de venta
-            string priceRaw = lineSplit[2].Replace("$", string.Empty).Trim();
-            priceRaw = priceRaw.Replace(".", "").Replace(",", ".");
-            if (!double.TryParse(priceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double price))
-                continue;
-
-            // Normaliza el precio de compra
-            string purchasePriceRaw = lineSplit[3].Replace("$", string.Empty).Trim();
-            purchasePriceRaw = purchasePriceRaw.Replace(".", "").Replace(",", ".");
-            if (!double.TryParse(purchasePriceRaw, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out double purchasePrice))
-                continue;
-
-            if (!int.TryParse(lineSplit[4], out int stock))
-                stock = 0;
-
-            var p = new Product(id, name, price, purchasePrice, stock);
-            products.Add(p);
-        }
-
-        return products;
+        return _context.Productos.AsNoTracking().ToList();
     }
 
     public void SaveProducts(List<Product> products)
     {
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
-
-        string[] lines = products
-            .Select(p => $"{p.ID};{p.Name};{p.Price};{p.PurchasePrice};{p.Stock}")
-            .ToArray();
-
-        File.WriteAllLines(RutaProductos, lines);
+        foreach (var product in products)
+        {
+            var existing = _context.Productos.FirstOrDefault(p => p.ID == product.ID);
+            if (existing != null)
+            {
+                _context.Entry(existing).CurrentValues.SetValues(product);
+            }
+            else
+            {
+                _context.Productos.Add(product);
+            }
+        }
+        _context.SaveChanges();
     }
 }

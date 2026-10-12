@@ -2,27 +2,37 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: tiendabarrio_db
-    restart: always
     environment:
+      POSTGRES_DB: tiendabarrio
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: adminpassword
-      POSTGRES_DB: tienda_don_julio_db
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: tiendabarrio_pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@tienda.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+  api:
+    build:
+      context: ..
+      dockerfile: Api/Dockerfile
+    container_name: tiendabarrio_api
     ports:
-      - "5050:80"
+      - "5222:8080"
+      - "5223:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tiendabarrio;Username=postgres;Password=postgres
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
