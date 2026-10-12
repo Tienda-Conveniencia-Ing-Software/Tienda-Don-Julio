@@ -3,3 +3,7 @@
 3;Ingreso;260000;Venta pedido #1;2026-09-05 20:36:16
 4;Ingreso;4500000;ingreso de mis cojones peludos;2026-09-05 20:36:44
 5;Gasto;676767;iva pa la perra de chupiplu;2026-09-05 20:37:11
+6;Ingreso;10000;pago ;2026-09-16 11:00:36
+7;CompraInventario;20000;Producto nuevo: frijol x4;2026-09-16 11:15:18
+8;CompraInventario;45000;Producto nuevo: pera x3;2026-09-16 18:19:27
+9;CompraInventario;45000;Producto nuevo: mango x3;2026-09-16 18:50:35
