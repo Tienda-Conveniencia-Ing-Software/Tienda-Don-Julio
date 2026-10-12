@@ -2,12 +2,21 @@ namespace TiendaBarrio.Core.Models;
 
 public class Order
 {
-    public int Id { get; }
-    public List<CartItem> Items { get; }
-    public double Total { get; }
-    public OrderStatus Status { get; private set; }
-    public DateTime CreatedAt { get; }
+    public int Id { get; set; }                       // ← set agregado
+    public List<CartItem> Items { get; set; }         // ← set agregado
+    public double Total { get; set; }                 // ← set agregado
+    public OrderStatus Status { get; set; }           // ← set agregado
+    public DateTime CreatedAt { get; set; }           // ← set agregado
 
+    // Constructor vacío (para EF Core)
+    public Order()
+    {
+        Items = new List<CartItem>();
+        CreatedAt = DateTime.Now;
+        Status = OrderStatus.Pendiente;
+    }
+
+    // Constructor con parámetros
     public Order(int id, List<CartItem> items)
     {
         Id = id;
