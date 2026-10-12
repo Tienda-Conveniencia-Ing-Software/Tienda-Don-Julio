@@ -4,7 +4,7 @@ Base URL local: `http://localhost:5222` · Swagger: `http://localhost:5222/swagg
 Formato: JSON (`Content-Type: application/json`). Errores de negocio: `{ "message": "..." }`.
 
 > Estado: los endpoints marcados **[Implementado]** existen hoy en `Api/Controllers`.
-> Los marcados **[Pendiente]** son el contrato acordado para la issue #53.
+> Seguridad: el login devuelve un token JWT. Los endpoints de escritura de inventario y todos los de finanzas requieren `Authorization: Bearer <token>` con rol `Trabajador` (si falta el token: 401; si el rol no alcanza: 403). `GET /api/inventory` y `GET /api/inventory/{id}` son públicos.
 
 ## Auth
 
@@ -15,12 +15,11 @@ Request:
 ```
 | Código | Significado | Body |
 |---|---|---|
-| 200 | Credenciales válidas | Datos del cliente (ver nota de seguridad) |
-| 400 | Email o contraseña vacíos | `{ "message": "El correo y la contraseña son obligatorios." }` |
+| 200 | Credenciales válidas | `{ "token": "...", "expiresAt": "...", "id": 1, "nombre": "...", "email": "...", "role": "Trabajador" }` |
+| 400 | Email o contraseña vacíos | ProblemDetails con los campos inválidos |
 | 401 | Credenciales inválidas | `{ "message": "Credenciales inválidas." }` |
 | 500 | Error inesperado | - |
 
-> Nota de seguridad: hoy la respuesta 200 devuelve el objeto `Cliente` completo, incluido `PasswordHash`. Debe cambiarse por un DTO (`id`, `nombre`, `email`, `role`) o un token.
 
 ## Inventario
 
@@ -38,27 +37,29 @@ Registra un producto. Request:
 ```
 | Código | Significado | Body |
 |---|---|---|
-| 200 | Producto registrado | `{ "message": "Producto registrado correctamente." }` |
+| 201 | Producto registrado | Producto creado (`id`, `name`, `price`, `purchasePrice`, `stock`) |
 | 400 | Datos inválidos o sin permiso | `{ "message": "..." }` |
-| 401 | Sin sesión (cuando exista autenticación) | - |
+| 401 | Sin token | - |
+| 403 | Rol insuficiente | - |
 | 500 | Error inesperado | - |
 
 ### DELETE `/api/inventory/{id}` [Implementado]
 | Código | Significado | Body |
 |---|---|---|
 | 200 | Producto eliminado | `{ "message": "Producto eliminado correctamente." }` |
-| 400 | No existe o sin permiso | `{ "message": "..." }` |
-| 401 | Sin sesión | - |
+| 404 | No existe | `{ "message": "Producto no encontrado." }` |
+| 401 | Sin token | - |
+| 403 | Rol insuficiente | - |
 | 500 | Error inesperado | - |
 
-### PUT `/api/inventory/{id}` [Pendiente]
-Modifica nombre y precios. Request igual a POST. Respuestas: 200, 400, 401, 404, 500.
+### PUT `/api/inventory/{id}` [Implementado]
+Modifica nombre y precios. Request igual a POST. Respuestas: 200, 400, 401, 403, 404, 500.
 
-### GET `/api/inventory/low-stock` [Pendiente]
+### GET `/api/inventory/low-stock` [Implementado]
 Productos con stock bajo (umbral definido en `InventoryService`). Respuestas: 200, 500.
 
-### POST `/api/inventory/{id}/stock` [Pendiente]
-Aumenta o disminuye stock. Request: `{ "quantity": 10 }` (negativo = disminuir). Respuestas: 200, 400, 401, 404, 500.
+### POST `/api/inventory/{id}/stock` [Implementado]
+Aumenta o disminuye stock. Request: `{ "quantity": 10 }` (negativo = disminuir). Respuestas: 200, 400, 401, 403, 404, 500.
 
 ## Finanzas
 
@@ -76,12 +77,12 @@ Aumenta o disminuye stock. Request: `{ "quantity": 10 }` (negativo = disminuir).
 
 `type` puede ser `Ingreso`, `Gasto` o `CompraInventario`.
 
-### POST `/api/finance/movements` [Pendiente]
+### POST `/api/finance/movements` [Implementado]
 Registra un ingreso o gasto manual. Request:
 ```json
 { "type": "Ingreso", "amount": 5000, "description": "Aporte de caja" }
 ```
-Respuestas: 200/201, 400 (monto <= 0), 401, 500.
+Solo `Ingreso` o `Gasto`. Respuestas: 201, 400 (monto <= 0 o tipo no permitido), 401, 403, 500.
 
 ## Ventas, pedidos y clientes [Pendiente, fuera de #53]
 `POST /api/sales` (checkout), `GET /api/sales`, `GET /api/orders`, `POST /api/clients`. Se definirán cuando Persona 3 cierre la limpieza de `Order` vs `Sale`.
