@@ -13,7 +13,7 @@ public class TiendaDbContext : DbContext
     public DbSet<SaleDetail> DetalleVentas { get; set; }
     public DbSet<Order> Pedidos { get; set; }
     public DbSet<CartItem> CarritoItems { get; set; }
-    public DbSet<Movimiento> Movimientos { get; set; }
+    public DbSet<CashMovement> Movimientos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
@@ -79,7 +79,7 @@ public class TiendaDbContext : DbContext
         modelBuilder.Entity<SaleDetail>(entity =>
         {
             entity.ToTable("Detalle_Venta");
-            entity.HasKey(e => new { e.ProductId, e.ProductName }); // Clave compuesta
+            entity.HasKey(e => new { e.ProductId, e.ProductName });
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(10,2)");
             entity.Property(e => e.UnitCost).HasColumnType("decimal(10,2)");
         });
@@ -95,7 +95,7 @@ public class TiendaDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Mapeo: Carrito de Compras (CartItem)
+        // Mapeo: Carrito de Compras
         modelBuilder.Entity<CartItem>(entity =>
         {
             entity.ToTable("Carrito_Items");
@@ -106,14 +106,15 @@ public class TiendaDbContext : DbContext
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Mapeo: Movimientos
-        modelBuilder.Entity<Movimiento>(entity =>
+        // Mapeo: Movimientos (CashMovement)
+        modelBuilder.Entity<CashMovement>(entity =>
         {
             entity.ToTable("Movimientos");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Tipo).IsRequired().HasMaxLength(20);
-            entity.Property(e => e.Descripcion).HasMaxLength(200);
-            entity.Property(e => e.Monto).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Description).HasMaxLength(200);
+            entity.Property(e => e.Date).IsRequired();
         });
     }
 }
