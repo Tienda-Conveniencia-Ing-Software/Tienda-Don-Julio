@@ -8,11 +8,35 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TiendaBarrio.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSeedData : Migration
+    public partial class FixTimestampAndSeed : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "Date",
+                table: "Ventas",
+                type: "timestamp without time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp with time zone");
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "FechaCreacion",
+                table: "Usuarios",
+                type: "timestamp without time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp with time zone");
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "Date",
+                table: "Movimientos",
+                type: "timestamp without time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp with time zone");
+
             migrationBuilder.InsertData(
                 table: "Clientes",
                 columns: new[] { "Id", "Cedula", "Email", "Nombre", "PasswordHash", "Role", "Telefono" },
@@ -133,6 +157,30 @@ namespace TiendaBarrio.Migrations
                 table: "Usuarios",
                 keyColumn: "Id",
                 keyValue: 2);
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "Date",
+                table: "Ventas",
+                type: "timestamp with time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp without time zone");
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "FechaCreacion",
+                table: "Usuarios",
+                type: "timestamp with time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp without time zone");
+
+            migrationBuilder.AlterColumn<DateTime>(
+                name: "Date",
+                table: "Movimientos",
+                type: "timestamp with time zone",
+                nullable: false,
+                oldClrType: typeof(DateTime),
+                oldType: "timestamp without time zone");
         }
     }
 }

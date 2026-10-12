@@ -153,7 +153,7 @@ namespace TiendaBarrio.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -302,7 +302,7 @@ namespace TiendaBarrio.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("Profit")
                         .HasColumnType("decimal(10,2)");
@@ -364,7 +364,7 @@ namespace TiendaBarrio.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
