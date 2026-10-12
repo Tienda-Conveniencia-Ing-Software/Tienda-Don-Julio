@@ -178,5 +178,5 @@ public class TiendaDbContext : DbContext
             new Product { ID = 5, Name = "Café", Price = 8000, PurchasePrice = 6000, Stock = 30 },
             new Product { ID = 6, Name = "Azúcar", Price = 3000, PurchasePrice = 2200, Stock = 60 },
             new Product { ID = 7, Name = "Sal", Price = 1500, PurchasePrice = 1000, Stock = 100 },
-            new Product { Id = 8, Name = "Aceite", Price = 9000, PurchasePrice = 7000, Stock = 40 }
+            new Product { ID = 8, Name = "Aceite", Price = 9000, PurchasePrice = 7000, Stock = 40 }
         );
