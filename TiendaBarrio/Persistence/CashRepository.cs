@@ -9,12 +9,6 @@ public class CashRepository : ICashRepository
 {
     private readonly TiendaDbContext _context;
 
-    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
-    public CashRepository()
-    {
-        _context = new TiendaDbContext();
-    }
-
     // Constructor para Inyección de Dependencias
     public CashRepository(TiendaDbContext context)
     {

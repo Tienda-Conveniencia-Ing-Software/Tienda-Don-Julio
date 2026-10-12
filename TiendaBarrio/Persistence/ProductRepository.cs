@@ -9,12 +9,6 @@ public class ProductRepository : IProductRepository
 {
     private readonly TiendaDbContext _context;
 
-    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
-    public ProductRepository()
-    {
-        _context = new TiendaDbContext();
-    }
-
     // Constructor para Inyección de Dependencias
     public ProductRepository(TiendaDbContext context)
     {

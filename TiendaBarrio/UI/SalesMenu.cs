@@ -6,12 +6,18 @@ using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
 
-public class SalesMenu(CartService cart,
-    FinanceService financeService)
+public class SalesMenu(
+    CartService cart,
+    InventoryService inventoryService,
+    SaleService saleService,
+    ShowProducts showProducts,
+    CartMenu cartMenu)
 {
     private readonly CartService _cart = cart;
-    private readonly InventoryService _inventoryService = new(new ProductRepository(), financeService);
-    private readonly SaleService _saleService = new(financeService);
+    private readonly InventoryService _inventoryService = inventoryService;
+    private readonly SaleService _saleService = saleService;
+    private readonly ShowProducts _showProducts = showProducts;
+    private readonly CartMenu _cartMenu = cartMenu;
     public void BuyStock(List<Product> products)
     {
         bool exit = true;
@@ -44,7 +50,7 @@ public class SalesMenu(CartService cart,
                     break;
 
                 case 2:
-                    new CartMenu(_cart).Start(products);
+                    _cartMenu.Start(products);
                     break;
 
                 case 3:
@@ -64,7 +70,7 @@ public class SalesMenu(CartService cart,
     {
         try
         {
-            new ShowProducts().StockMenu(products);
+            _showProducts.StockMenu(products);
             Console.WriteLine("Put the ID of the product you are going to buy");
             int idfound;
             while (!int.TryParse(Console.ReadLine(), out idfound))

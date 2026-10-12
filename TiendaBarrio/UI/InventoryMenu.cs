@@ -18,9 +18,9 @@ public class InventoryMenu
     };
     private readonly InventoryService _inventoryService;
 
-    public InventoryMenu(FinanceService financeService)
+    public InventoryMenu(InventoryService inventoryService)
     {
-        _inventoryService = new InventoryService(new ProductRepository(), financeService);
+        _inventoryService = inventoryService;
     }
 
     public void Start(List<Product> products)

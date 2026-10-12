@@ -4,19 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence;
+using TiendaBarrio.Persistence.Interfaces;
 
 public class SaleService
 {
-    private readonly SaleRepository _saleRepository;
-    private readonly ProductRepository _productRepository;
+    private readonly ISaleRepository _saleRepository;
+    private readonly IProductRepository _productRepository;
     private readonly FinanceService _financeService;
 
-    public SaleService(FinanceService financeService)
+    public SaleService(
+        ISaleRepository saleRepository,
+        IProductRepository productRepository,
+        FinanceService financeService)
     {
-        _saleRepository = new SaleRepository();
-        _productRepository = new ProductRepository();
-        _financeService = financeService;
+        _saleRepository = saleRepository ?? throw new ArgumentNullException(nameof(saleRepository));
+        _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+        _financeService = financeService ?? throw new ArgumentNullException(nameof(financeService));
     }
 
     public Sale? ProcessSale(CartService cart, List<Product> products)

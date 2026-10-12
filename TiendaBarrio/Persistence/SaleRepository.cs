@@ -7,8 +7,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Config;
+using TiendaBarrio.Persistence.Interfaces;
 
-public class SaleRepository
+public class SaleRepository : ISaleRepository
 {
     // Ruta centralizada en DataConfig
     private string RutaVentas => DataConfig.VentasFile;

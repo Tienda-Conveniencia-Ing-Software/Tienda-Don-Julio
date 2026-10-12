@@ -1,4 +1,6 @@
 using TiendaBarrio.Web.Components;
+using Microsoft.EntityFrameworkCore;
+using TiendaBarrio.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Services;
@@ -8,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // ============================================================================
 // CONFIGURACIÓN DE SERVICIOS - PERSONA 3
 // ============================================================================
+
+// 0. DbContext (los repositorios ya no lo crean con new)
+builder.Services.AddDbContext<TiendaDbContext>();
 
 // 1. Repositorios
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
