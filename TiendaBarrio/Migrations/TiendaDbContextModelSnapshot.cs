@@ -215,7 +215,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "123456789",
                             Email = "admin@donjulio.com",
                             Nombre = "Administrador Don Julio",
-                            PasswordHash = "hash_admin",
+                            PasswordHash = "$2a$12$v3OitJliBa8wBq8R5u6X0uyAbBJLBxZi46Qy8DV1.G3AUnMUQrlBK",
                             Role = "Trabajador",
                             Telefono = "3001234567"
                         },
@@ -225,7 +225,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "12345678",
                             Email = "juan@test.com",
                             Nombre = "Juan Perez",
-                            PasswordHash = "hash_juan",
+                            PasswordHash = "$2a$12$IVyD6Zrqx/56rH0Z26ZUW.AJTTY4The7jE.kP34Qp6dVoUONMiKS2",
                             Role = "Cliente",
                             Telefono = "3001234567"
                         },
@@ -235,7 +235,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "87654321",
                             Email = "maria@test.com",
                             Nombre = "Maria Lopez",
-                            PasswordHash = "hash_maria",
+                            PasswordHash = "$2a$12$2an1Qf9ahpOJ74OGBM8ev.OosG3IyRC1gxE5DrfIXMv9nSar8R1ES",
                             Role = "Cliente",
                             Telefono = "3007654321"
                         },
@@ -245,7 +245,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "11223344",
                             Email = "carlos@test.com",
                             Nombre = "Carlos Ruiz",
-                            PasswordHash = "hash_carlos",
+                            PasswordHash = "$2a$12$xrzLQfC9JD/GxRJlWHy0zuPXibr4FxnPUZ3lkrL8dn8KT6IICdRRS",
                             Role = "Trabajador",
                             Telefono = "3001122334"
                         },
@@ -255,7 +255,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "44332211",
                             Email = "ana@test.com",
                             Nombre = "Ana Torres",
-                            PasswordHash = "hash_ana",
+                            PasswordHash = "$2a$12$SSpq.ci2nf4CY0DpJAM8wuWhy8NRcmFShe9f3ARznPTiAPBfl.2IS",
                             Role = "Cliente",
                             Telefono = "3004433221"
                         },
@@ -265,7 +265,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "55667788",
                             Email = "pedro@test.com",
                             Nombre = "Pedro Gomez",
-                            PasswordHash = "hash_pedro",
+                            PasswordHash = "$2a$12$8/.m406KNTdh2g3rpfWrQO2apkhQq7NijEg7NnPraRfdCCysCL6h.",
                             Role = "Cliente",
                             Telefono = "3005566778"
                         });
@@ -384,7 +384,7 @@ namespace TiendaBarrio.Migrations
                         new
                         {
                             Id = 1,
-                            ContraseñaHash = "admin123",
+                            ContraseñaHash = "$2a$12$/OzOwInLQj2KIbu9v2cAw.av1KhDs.ey1KbLzpY477aQ8I7muAsaO",
                             Email = "admin@tienda.com",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NombreUsuario = "admin",
@@ -393,7 +393,7 @@ namespace TiendaBarrio.Migrations
                         new
                         {
                             Id = 2,
-                            ContraseñaHash = "vendedor123",
+                            ContraseñaHash = "$2a$12$S8GarW8hKtXpVpL0osCtd.wcXcARszT/gW65RYv8fezAc/OQmlimS",
                             Email = "vendedor@tienda.com",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NombreUsuario = "vendedor",
