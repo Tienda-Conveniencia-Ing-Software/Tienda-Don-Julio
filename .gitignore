@@ -427,3 +427,13 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Variables de entorno
+.env
+*.env
+
+# Archivos de base de datos locales
+*.db
+*.db-shm
+*.db-wal
+tienda.db
