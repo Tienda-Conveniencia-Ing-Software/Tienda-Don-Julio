@@ -47,6 +47,72 @@ namespace TiendaBarrio.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Productos", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ID = 1,
+                            Name = "Arroz",
+                            Price = 2500.0,
+                            PurchasePrice = 1800.0,
+                            Stock = 100
+                        },
+                        new
+                        {
+                            ID = 2,
+                            Name = "Leche",
+                            Price = 3500.0,
+                            PurchasePrice = 2800.0,
+                            Stock = 50
+                        },
+                        new
+                        {
+                            ID = 3,
+                            Name = "Pan",
+                            Price = 2000.0,
+                            PurchasePrice = 1500.0,
+                            Stock = 80
+                        },
+                        new
+                        {
+                            ID = 4,
+                            Name = "Huevos",
+                            Price = 500.0,
+                            PurchasePrice = 350.0,
+                            Stock = 200
+                        },
+                        new
+                        {
+                            ID = 5,
+                            Name = "Café",
+                            Price = 8000.0,
+                            PurchasePrice = 6000.0,
+                            Stock = 30
+                        },
+                        new
+                        {
+                            ID = 6,
+                            Name = "Azúcar",
+                            Price = 3000.0,
+                            PurchasePrice = 2200.0,
+                            Stock = 60
+                        },
+                        new
+                        {
+                            ID = 7,
+                            Name = "Sal",
+                            Price = 1500.0,
+                            PurchasePrice = 1000.0,
+                            Stock = 100
+                        },
+                        new
+                        {
+                            ID = 8,
+                            Name = "Aceite",
+                            Price = 9000.0,
+                            PurchasePrice = 7000.0,
+                            Stock = 40
+                        });
                 });
 
             modelBuilder.Entity("TiendaBarrio.Core.Models.CartItem", b =>
@@ -141,6 +207,68 @@ namespace TiendaBarrio.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Clientes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Cedula = "123456789",
+                            Email = "admin@donjulio.com",
+                            Nombre = "Administrador Don Julio",
+                            PasswordHash = "hash_admin",
+                            Role = "Trabajador",
+                            Telefono = "3001234567"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Cedula = "12345678",
+                            Email = "juan@test.com",
+                            Nombre = "Juan Perez",
+                            PasswordHash = "hash_juan",
+                            Role = "Cliente",
+                            Telefono = "3001234567"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Cedula = "87654321",
+                            Email = "maria@test.com",
+                            Nombre = "Maria Lopez",
+                            PasswordHash = "hash_maria",
+                            Role = "Cliente",
+                            Telefono = "3007654321"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Cedula = "11223344",
+                            Email = "carlos@test.com",
+                            Nombre = "Carlos Ruiz",
+                            PasswordHash = "hash_carlos",
+                            Role = "Trabajador",
+                            Telefono = "3001122334"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Cedula = "44332211",
+                            Email = "ana@test.com",
+                            Nombre = "Ana Torres",
+                            PasswordHash = "hash_ana",
+                            Role = "Cliente",
+                            Telefono = "3004433221"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Cedula = "55667788",
+                            Email = "pedro@test.com",
+                            Nombre = "Pedro Gomez",
+                            PasswordHash = "hash_pedro",
+                            Role = "Cliente",
+                            Telefono = "3005566778"
+                        });
                 });
 
             modelBuilder.Entity("TiendaBarrio.Core.Models.Order", b =>
@@ -251,6 +379,26 @@ namespace TiendaBarrio.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ContraseñaHash = "admin123",
+                            Email = "admin@tienda.com",
+                            FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            NombreUsuario = "admin",
+                            Rol = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ContraseñaHash = "vendedor123",
+                            Email = "vendedor@tienda.com",
+                            FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            NombreUsuario = "vendedor",
+                            Rol = "Vendedor"
+                        });
                 });
 
             modelBuilder.Entity("TiendaBarrio.Core.Models.CartItem", b =>

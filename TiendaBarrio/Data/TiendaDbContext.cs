@@ -72,6 +72,7 @@ public class TiendaDbContext : DbContext
         entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
         entity.Property(e => e.ContraseñaHash).IsRequired().HasMaxLength(255);
         entity.Property(e => e.Rol).IsRequired().HasMaxLength(20);
+        entity.Property(e => e.FechaCreacion).HasColumnType("timestamp without time zone");
     });
 
     // Mapeo: Ventas
@@ -82,6 +83,7 @@ public class TiendaDbContext : DbContext
         entity.Property(e => e.Total).HasColumnType("decimal(10,2)");
         entity.Property(e => e.TotalCost).HasColumnType("decimal(10,2)");
         entity.Property(e => e.Profit).HasColumnType("decimal(10,2)");
+        entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
     });
 
     // Mapeo: Detalle de Ventas
@@ -124,6 +126,7 @@ public class TiendaDbContext : DbContext
         entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
         entity.Property(e => e.Description).HasMaxLength(200);
         entity.Property(e => e.Date).IsRequired();
+        entity.Property(e => e.Date).IsRequired().HasColumnType("timestamp without time zone");
     });
 
     // Seed: Usuarios del sistema
