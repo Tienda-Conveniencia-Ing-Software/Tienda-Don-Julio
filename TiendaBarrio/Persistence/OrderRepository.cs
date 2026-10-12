@@ -6,9 +6,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Config;
 
-public class OrderRepository
+public class OrderRepository : IOrderRepository
 {
     // Ruta centralizada en DataConfig
     private string RutaPedidos => DataConfig.PedidosFile;
@@ -33,6 +34,8 @@ public class OrderRepository
         if (!File.Exists(RutaPedidos))
             return new List<string>();
 
-        return File.ReadAllLines(RutaPedidos).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+        return File.ReadAllLines(RutaPedidos)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToList();
     }
 }

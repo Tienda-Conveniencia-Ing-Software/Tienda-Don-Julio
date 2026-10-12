@@ -1,17 +1,17 @@
 namespace TiendaBarrio.UI;
 
-using TiendaBarrio.Persistence;
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
+using TiendaBarrio.Persistence;
+using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
-using TiendaBarrio.Inventario;
-using TiendaBarrio.Modules.Ventas;
 
-public class SalesMenu(CartService cart)
+public class SalesMenu(CartService cart,
+    FinanceService financeService)
 {
     private readonly CartService _cart = cart;
-    private readonly SaleService _saleService = new();
-
+    private readonly InventoryService _inventoryService = new(new ProductRepository(), financeService);
+    private readonly SaleService _saleService = new(financeService);
     public void BuyStock(List<Product> products)
     {
         bool exit = true;
@@ -73,7 +73,7 @@ public class SalesMenu(CartService cart)
                 Console.WriteLine("Put the ID of the product you are going to buy");
             }
 
-            Product found = new InventoryService().FoundProduct(products, idfound);
+            Product found = _inventoryService.FindProduct(products, idfound);
 
             if (found == null)
             {

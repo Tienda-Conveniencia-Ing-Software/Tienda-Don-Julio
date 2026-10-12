@@ -6,9 +6,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Config;
 
-public class ProductRepository
+public class ProductRepository : IProductRepository
 {
     // Ruta centralizada en DataConfig
     private string RutaProductos => DataConfig.ProductosFile;

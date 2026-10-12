@@ -1,14 +1,15 @@
 namespace TiendaBarrio.Persistence;
 
 using System;
-using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-using TiendaBarrio.Core.Models;
+using System.IO;
+using System.Linq;
 using TiendaBarrio.Core.Config;
+using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Interfaces;
 
-public class ClienteRepository
+public class ClienteRepository : IClienteRepository
 {
     // Ruta centralizada en DataConfig
     private string RutaClientes => DataConfig.ClientesFile;
@@ -43,7 +44,16 @@ public class ClienteRepository
 
             try
             {
-                var c = new Cliente(id, nombre, cedula, telefono, email);
+                var c = new Cliente
+                {
+                    Id = id,
+                    Nombre = nombre,
+                    Cedula = cedula,
+                    Telefono = telefono,
+                    Email = email,
+                    PasswordHash = parts.Length > 5 ? parts[5] : "HASH_DEFAULT",
+                    Role = parts.Length > 6 ? parts[6] : "Cliente"
+                };
                 clientes.Add(c);
             }
             catch (ArgumentException)
@@ -66,6 +76,15 @@ public class ClienteRepository
             .ToArray();
 
         File.WriteAllLines(RutaClientes, lines);
+    }
+    public Cliente? GetByEmail(string email)
+    {
+        return LoadClientes().FirstOrDefault(c => string.Equals(c.Email, email, System.StringComparison.OrdinalIgnoreCase));
+    }
+
+    public Cliente? GetByCedula(string cedula)
+    {
+        return LoadClientes().FirstOrDefault(c => c.Cedula == cedula);
     }
 
     public void AddCliente(Cliente cliente)

@@ -95,7 +95,10 @@ public class CartMenu(CartService cart)
         Console.WriteLine("Enter quantity:");
         if (!int.TryParse(Console.ReadLine(), out int quantity)) return;
 
-        _cart.AddProduct(product, quantity);
+        if (!_cart.AddProduct(product, quantity))
+        {
+            Console.WriteLine("Invalid quantity or not enough stock.");
+        }
     }
 
     private void UpdateQuantityFlow()
@@ -112,7 +115,11 @@ public class CartMenu(CartService cart)
         Console.WriteLine("Enter new quantity:");
         if (!int.TryParse(Console.ReadLine(), out int quantity)) return;
 
-        _cart.UpdateQuantity(id, quantity);
+        if (!_cart.UpdateQuantity(id, quantity))
+        {
+            Console.WriteLine("Invalid quantity or not enough stock.");
+        }
+        
     }
 
     private void RemoveItemFlow()
