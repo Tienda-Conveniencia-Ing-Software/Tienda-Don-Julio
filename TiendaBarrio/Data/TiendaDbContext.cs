@@ -138,11 +138,45 @@ public class TiendaDbContext : DbContext
             Role = "Trabajador"
         });
 
-        // Data Seeding: Productos iniciales
-        modelBuilder.Entity<Product>().HasData(
-            new Product { ID = 1, Name = "Arroz 1kg", Price = 4500, PurchasePrice = 3500, Stock = 50 },
-            new Product { ID = 2, Name = "Leche 1L", Price = 3800, PurchasePrice = 3000, Stock = 30 }
+                // Seed: Usuarios del sistema
+        modelBuilder.Entity<Usuario>().HasData(
+            new Usuario
+            {
+                Id = 1,
+                NombreUsuario = "admin",
+                Email = "admin@tienda.com",
+                ContraseñaHash = "admin123",
+                Rol = "Admin",
+                FechaCreacion = new DateTime(2026, 1, 1)
+            },
+            new Usuario
+            {
+                Id = 2,
+                NombreUsuario = "vendedor",
+                Email = "vendedor@tienda.com",
+                ContraseñaHash = "vendedor123",
+                Rol = "Vendedor",
+                FechaCreacion = new DateTime(2026, 1, 1)
+            }
         );
-    }
 
-}
+        // Seed: Clientes de prueba
+        modelBuilder.Entity<Cliente>().HasData(
+            new Cliente { Id = 1, Nombre = "Juan Perez", Cedula = "12345678", Telefono = "3001234567", Email = "juan@test.com", PasswordHash = "hash_juan", Role = "Cliente" },
+            new Cliente { Id = 2, Nombre = "Maria Lopez", Cedula = "87654321", Telefono = "3007654321", Email = "maria@test.com", PasswordHash = "hash_maria", Role = "Cliente" },
+            new Cliente { Id = 3, Nombre = "Carlos Ruiz", Cedula = "11223344", Telefono = "3001122334", Email = "carlos@test.com", PasswordHash = "hash_carlos", Role = "Trabajador" },
+            new Cliente { Id = 4, Nombre = "Ana Torres", Cedula = "44332211", Telefono = "3004433221", Email = "ana@test.com", PasswordHash = "hash_ana", Role = "Cliente" },
+            new Cliente { Id = 5, Nombre = "Pedro Gomez", Cedula = "55667788", Telefono = "3005566778", Email = "pedro@test.com", PasswordHash = "hash_pedro", Role = "Cliente" }
+        );
+
+        // Seed: Catálogo base de productos
+        modelBuilder.Entity<Product>().HasData(
+            new Product { ID = 1, Name = "Arroz", Price = 2500, PurchasePrice = 1800, Stock = 100 },
+            new Product { ID = 2, Name = "Leche", Price = 3500, PurchasePrice = 2800, Stock = 50 },
+            new Product { ID = 3, Name = "Pan", Price = 2000, PurchasePrice = 1500, Stock = 80 },
+            new Product { ID = 4, Name = "Huevos", Price = 500, PurchasePrice = 350, Stock = 200 },
+            new Product { ID = 5, Name = "Café", Price = 8000, PurchasePrice = 6000, Stock = 30 },
+            new Product { ID = 6, Name = "Azúcar", Price = 3000, PurchasePrice = 2200, Stock = 60 },
+            new Product { ID = 7, Name = "Sal", Price = 1500, PurchasePrice = 1000, Stock = 100 },
+            new Product { Id = 8, Name = "Aceite", Price = 9000, PurchasePrice = 7000, Stock = 40 }
+        );
