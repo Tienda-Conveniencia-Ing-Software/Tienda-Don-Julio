@@ -169,4 +169,5 @@ public class TiendaDbContext : DbContext
         new Product { ID = 7, Name = "Sal", Price = 1500, PurchasePrice = 1000, Stock = 100 },
         new Product { ID = 8, Name = "Aceite", Price = 9000, PurchasePrice = 7000, Stock = 40 }
     );
-}   // ← ESTA LLAVE FALTABA
+    }
+}   
