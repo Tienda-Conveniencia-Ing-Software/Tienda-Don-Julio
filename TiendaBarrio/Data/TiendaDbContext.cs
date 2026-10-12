@@ -137,7 +137,7 @@ public class TiendaDbContext : DbContext
             Id = 1,
             NombreUsuario = "admin",
             Email = "admin@tienda.com",
-            ContraseñaHash = "admin123",
+            ContraseñaHash = "$2a$12$/OzOwInLQj2KIbu9v2cAw.av1KhDs.ey1KbLzpY477aQ8I7muAsaO",
             Rol = "Admin",
             FechaCreacion = new DateTime(2026, 1, 1)
         },
@@ -146,7 +146,7 @@ public class TiendaDbContext : DbContext
             Id = 2,
             NombreUsuario = "vendedor",
             Email = "vendedor@tienda.com",
-            ContraseñaHash = "vendedor123",
+            ContraseñaHash = "$2a$12$S8GarW8hKtXpVpL0osCtd.wcXcARszT/gW65RYv8fezAc/OQmlimS",
             Rol = "Vendedor",
             FechaCreacion = new DateTime(2026, 1, 1)
         }
@@ -154,12 +154,12 @@ public class TiendaDbContext : DbContext
 
     // Seed: Clientes de prueba
     modelBuilder.Entity<Cliente>().HasData(
-        new Cliente { Id = 1, Nombre = "Administrador Don Julio", Cedula = "123456789", Telefono = "3001234567", Email = "admin@donjulio.com", PasswordHash = "hash_admin", Role = "Trabajador" },
-        new Cliente { Id = 2, Nombre = "Juan Perez", Cedula = "12345678", Telefono = "3001234567", Email = "juan@test.com", PasswordHash = "hash_juan", Role = "Cliente" },
-        new Cliente { Id = 3, Nombre = "Maria Lopez", Cedula = "87654321", Telefono = "3007654321", Email = "maria@test.com", PasswordHash = "hash_maria", Role = "Cliente" },
-        new Cliente { Id = 4, Nombre = "Carlos Ruiz", Cedula = "11223344", Telefono = "3001122334", Email = "carlos@test.com", PasswordHash = "hash_carlos", Role = "Trabajador" },
-        new Cliente { Id = 5, Nombre = "Ana Torres", Cedula = "44332211", Telefono = "3004433221", Email = "ana@test.com", PasswordHash = "hash_ana", Role = "Cliente" },
-        new Cliente { Id = 6, Nombre = "Pedro Gomez", Cedula = "55667788", Telefono = "3005566778", Email = "pedro@test.com", PasswordHash = "hash_pedro", Role = "Cliente" }
+        new Cliente { Id = 1, Nombre = "Administrador Don Julio", Cedula = "123456789", Telefono = "3001234567", Email = "admin@donjulio.com", PasswordHash = "$2a$12$v3OitJliBa8wBq8R5u6X0uyAbBJLBxZi46Qy8DV1.G3AUnMUQrlBK", Role = "Trabajador" },
+        new Cliente { Id = 2, Nombre = "Juan Perez", Cedula = "12345678", Telefono = "3001234567", Email = "juan@test.com", PasswordHash = "$2a$12$IVyD6Zrqx/56rH0Z26ZUW.AJTTY4The7jE.kP34Qp6dVoUONMiKS2", Role = "Cliente" },
+        new Cliente { Id = 3, Nombre = "Maria Lopez", Cedula = "87654321", Telefono = "3007654321", Email = "maria@test.com", PasswordHash = "$2a$12$2an1Qf9ahpOJ74OGBM8ev.OosG3IyRC1gxE5DrfIXMv9nSar8R1ES", Role = "Cliente" },
+        new Cliente { Id = 4, Nombre = "Carlos Ruiz", Cedula = "11223344", Telefono = "3001122334", Email = "carlos@test.com", PasswordHash = "$2a$12$xrzLQfC9JD/GxRJlWHy0zuPXibr4FxnPUZ3lkrL8dn8KT6IICdRRS", Role = "Trabajador" },
+        new Cliente { Id = 5, Nombre = "Ana Torres", Cedula = "44332211", Telefono = "3004433221", Email = "ana@test.com", PasswordHash = "$2a$12$SSpq.ci2nf4CY0DpJAM8wuWhy8NRcmFShe9f3ARznPTiAPBfl.2IS", Role = "Cliente" },
+        new Cliente { Id = 6, Nombre = "Pedro Gomez", Cedula = "55667788", Telefono = "3005566778", Email = "pedro@test.com", PasswordHash = "$2a$12$8/.m406KNTdh2g3rpfWrQO2apkhQq7NijEg7NnPraRfdCCysCL6h.", Role = "Cliente" }
     );
 
     // Seed: Catálogo base de productos
