@@ -51,12 +51,11 @@
 - Estado
 - Total
 
-### Detalle_Pedido
-- Id_Detalle_Pedido (PK)
-- Id_Pedido (FK → Pedido)
-- Id_Producto (FK → Producto)
-- Cantidad
-- Precio_Unitario
+### Carrito_Items
+- Id (PK)
+- ProductId (FK → Producto)
+- Quantity
+- OrderId (FK → Pedido)
 
 ### Movimiento
 - Id_Movimiento (PK)
@@ -73,7 +72,7 @@
 | Venta → Detalle_Venta | 1 a N |
 | Producto → Detalle_Venta | 1 a N |
 | Cliente → Pedido | 1 a N |
-| Pedido → Detalle_Pedido | 1 a N |
-| Producto → Detalle_Pedido | 1 a N |
+| Pedido → Carrito_Items | 1 a N |
+| Producto → Carrito_Items | 1 a N |
 | Usuario → Venta | 1 a N |
 | Usuario → Movimiento | 1 a N |
