@@ -30,7 +30,8 @@ public class TiendaDbContext : DbContext
             var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
             var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
             var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-            var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "neji1514j*";
+            var password = Environment.GetEnvironmentVariable("DB_PASSWORD")
+    ?? throw new InvalidOperationException("La variable de entorno DB_PASSWORD no está configurada.");
 
             var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
 
