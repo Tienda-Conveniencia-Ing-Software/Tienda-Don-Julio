@@ -12,15 +12,15 @@ using TiendaBarrio.Data;
 namespace TiendaBarrio.Migrations
 {
     [DbContext(typeof(TiendaDbContext))]
-    [Migration("20261012062531_AddDataSeedingAndEntities")]
-    partial class AddDataSeedingAndEntities
+    [Migration("20261012192642_FixTimestampAndSeed")]
+    partial class FixTimestampAndSeed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -55,18 +55,66 @@ namespace TiendaBarrio.Migrations
                         new
                         {
                             ID = 1,
-                            Name = "Arroz 1kg",
-                            Price = 4500.0,
-                            PurchasePrice = 3500.0,
-                            Stock = 50
+                            Name = "Arroz",
+                            Price = 2500.0,
+                            PurchasePrice = 1800.0,
+                            Stock = 100
                         },
                         new
                         {
                             ID = 2,
-                            Name = "Leche 1L",
-                            Price = 3800.0,
-                            PurchasePrice = 3000.0,
+                            Name = "Leche",
+                            Price = 3500.0,
+                            PurchasePrice = 2800.0,
+                            Stock = 50
+                        },
+                        new
+                        {
+                            ID = 3,
+                            Name = "Pan",
+                            Price = 2000.0,
+                            PurchasePrice = 1500.0,
+                            Stock = 80
+                        },
+                        new
+                        {
+                            ID = 4,
+                            Name = "Huevos",
+                            Price = 500.0,
+                            PurchasePrice = 350.0,
+                            Stock = 200
+                        },
+                        new
+                        {
+                            ID = 5,
+                            Name = "Café",
+                            Price = 8000.0,
+                            PurchasePrice = 6000.0,
                             Stock = 30
+                        },
+                        new
+                        {
+                            ID = 6,
+                            Name = "Azúcar",
+                            Price = 3000.0,
+                            PurchasePrice = 2200.0,
+                            Stock = 60
+                        },
+                        new
+                        {
+                            ID = 7,
+                            Name = "Sal",
+                            Price = 1500.0,
+                            PurchasePrice = 1000.0,
+                            Stock = 100
+                        },
+                        new
+                        {
+                            ID = 8,
+                            Name = "Aceite",
+                            Price = 9000.0,
+                            PurchasePrice = 7000.0,
+                            Stock = 40
                         });
                 });
 
@@ -108,7 +156,7 @@ namespace TiendaBarrio.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -170,9 +218,59 @@ namespace TiendaBarrio.Migrations
                             Cedula = "123456789",
                             Email = "admin@donjulio.com",
                             Nombre = "Administrador Don Julio",
-                            PasswordHash = "$2a$11$s18O2WqXF1zUj9kZq3B3ee5XpX3aO1NfL9/aK0vA7Zq0gU3g0Oa8i",
+                            PasswordHash = "hash_admin",
                             Role = "Trabajador",
                             Telefono = "3001234567"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Cedula = "12345678",
+                            Email = "juan@test.com",
+                            Nombre = "Juan Perez",
+                            PasswordHash = "hash_juan",
+                            Role = "Cliente",
+                            Telefono = "3001234567"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Cedula = "87654321",
+                            Email = "maria@test.com",
+                            Nombre = "Maria Lopez",
+                            PasswordHash = "hash_maria",
+                            Role = "Cliente",
+                            Telefono = "3007654321"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Cedula = "11223344",
+                            Email = "carlos@test.com",
+                            Nombre = "Carlos Ruiz",
+                            PasswordHash = "hash_carlos",
+                            Role = "Trabajador",
+                            Telefono = "3001122334"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Cedula = "44332211",
+                            Email = "ana@test.com",
+                            Nombre = "Ana Torres",
+                            PasswordHash = "hash_ana",
+                            Role = "Cliente",
+                            Telefono = "3004433221"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Cedula = "55667788",
+                            Email = "pedro@test.com",
+                            Nombre = "Pedro Gomez",
+                            PasswordHash = "hash_pedro",
+                            Role = "Cliente",
+                            Telefono = "3005566778"
                         });
                 });
 
@@ -207,7 +305,7 @@ namespace TiendaBarrio.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<double>("Profit")
                         .HasColumnType("decimal(10,2)");
@@ -269,7 +367,7 @@ namespace TiendaBarrio.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
@@ -284,6 +382,26 @@ namespace TiendaBarrio.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Usuarios", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ContraseñaHash = "admin123",
+                            Email = "admin@tienda.com",
+                            FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            NombreUsuario = "admin",
+                            Rol = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ContraseñaHash = "vendedor123",
+                            Email = "vendedor@tienda.com",
+                            FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            NombreUsuario = "vendedor",
+                            Rol = "Vendedor"
+                        });
                 });
 
             modelBuilder.Entity("TiendaBarrio.Core.Models.CartItem", b =>
