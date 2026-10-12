@@ -8,7 +8,12 @@ using TiendaBarrio.Utils;
 
 public class FinanceMenu
 {
-        private readonly FinanceService _financeService = new FinanceService(new CashRepository());
+    private readonly FinanceService _financeService;
+
+    public FinanceMenu(FinanceService financeService)
+    {
+        _financeService = financeService;
+    }
 
     public void Start()
     {

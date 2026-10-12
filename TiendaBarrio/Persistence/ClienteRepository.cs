@@ -9,12 +9,6 @@ public class ClienteRepository : IClienteRepository
 {
     private readonly TiendaDbContext _context;
 
-    // Constructor sin parámetros (para compatibilidad con UI Consola y Servicios)
-    public ClienteRepository()
-    {
-        _context = new TiendaDbContext();
-    }
-
     // Constructor para Inyección de Dependencias
     public ClienteRepository(TiendaDbContext context)
     {

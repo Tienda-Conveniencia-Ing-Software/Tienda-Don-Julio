@@ -7,17 +7,22 @@ using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
 
-public class MainMenu()
+public class MainMenu(
+    IProductRepository productRepository,
+    ShowProducts showProducts,
+    SalesMenu salesMenu,
+    InventoryMenu inventoryMenu,
+    FinanceMenu financeMenu)
 {
-    private readonly CartService _cart = new();
-    private readonly FinanceService _finance = new FinanceService(new CashRepository());
-    private readonly IProductRepository _productRepository = new ProductRepository();
-    private readonly IOrderRepository _orderRepository = new OrderRepository();
-    private readonly ShowProducts _showProducts = new ShowProducts();
-    private readonly FinanceMenu _financeMenu = new FinanceMenu();
+    private readonly IProductRepository _productRepository = productRepository;
+    private readonly ShowProducts _showProducts = showProducts;
+    private readonly SalesMenu _salesMenu = salesMenu;
+    private readonly InventoryMenu _inventoryMenu = inventoryMenu;
+    private readonly FinanceMenu _financeMenu = financeMenu;
+
     public void Start()
     {
-        List<Product> products = new ProductRepository().LoadProducts();
+        List<Product> products = _productRepository.LoadProducts();
         bool exit = true;
         while (exit)
         {
@@ -43,12 +48,12 @@ public class MainMenu()
                     break;
 
                 case 2:
-                    new SalesMenu(_cart, _finance).BuyStock(products);
+                    _salesMenu.BuyStock(products);
                     new Pause().pause();
                     break;
 
                 case 3:
-                    new InventoryMenu(_finance).Start(products);
+                    _inventoryMenu.Start(products);
                     new Pause().pause();
                     break;
 

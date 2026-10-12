@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TiendaBarrio.Core.Config;
 using TiendaBarrio.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
@@ -25,15 +26,8 @@ builder.Services.AddDbContext<TiendaDbContext>(options =>
     // Ignorar la advertencia de cambios pendientes para desarrollo
     options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
-// Registrar Repositorios e Inyección de Dependencias
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-builder.Services.AddScoped<ICashRepository, CashRepository>();
-
-// Registrar Servicios del Core
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<InventoryService>();
-builder.Services.AddScoped<FinanceService>();
+// Registrar repositorios y servicios del Core (definido en Core/Config)
+builder.Services.AddTiendaCore();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
