@@ -34,6 +34,15 @@ public class ProductRepository : IProductRepository
                 _context.Productos.Add(product);
             }
         }
+
+        // La lista recibida es el estado completo: se eliminan de la BD los productos que ya no estan
+        var ids = products.Select(p => p.ID).ToHashSet();
+        var removed = _context.Productos.Where(p => !ids.Contains(p.ID)).ToList();
+        if (removed.Count > 0)
+        {
+            _context.Productos.RemoveRange(removed);
+        }
+
         _context.SaveChanges();
     }
 }

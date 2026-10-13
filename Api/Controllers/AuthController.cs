@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TiendaBarrio.Core.Services;
 using Api.DTOs;
+using Api.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TiendaBarrio.Core.Services;
 
 namespace Api.Controllers;
 
@@ -9,32 +11,30 @@ namespace Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;
+    private readonly JwtTokenService _tokenService;
 
-    public AuthController(AuthService authService)
+    public AuthController(AuthService authService, JwtTokenService tokenService)
     {
         _authService = authService;
+        _tokenService = tokenService;
     }
 
+    /// <summary>Valida credenciales y devuelve un token JWT.</summary>
     [HttpPost("login")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(MessageDto), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult Login([FromBody] LoginDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+        var cliente = _authService.Login(dto.Email, dto.Password);
+        if (cliente == null)
         {
-            return BadRequest(new { message = "El correo y la contraseña son obligatorios." });
+            return Unauthorized(new MessageDto("Credenciales inválidas."));
         }
 
-        try
-        {
-            var cliente = _authService.Login(dto.Email, dto.Password);
-            if (cliente == null)
-            {
-                return Unauthorized(new { message = "Credenciales inválidas." });
-            }
-            return Ok(cliente);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var (token, expiresAt) = _tokenService.CreateToken(cliente);
+        return Ok(new LoginResponseDto(token, expiresAt, cliente.Id, cliente.Nombre, cliente.Email, cliente.Role));
     }
 }
