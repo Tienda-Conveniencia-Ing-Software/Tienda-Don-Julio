@@ -1,11 +1,13 @@
-namespace TiendaBarrio.Persistence.Interfaces;
-
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TiendaBarrio.Core.Models;
+
+namespace TiendaBarrio.Persistence.Interfaces;
 
 public interface ISaleRepository
 {
-    List<Sale> LoadSales();
-    void SaveSale(Sale sale);
-    int GetNextSaleId();
+    Task<List<Sale>> GetAllAsync();
+    Task<Sale?> GetByIdAsync(int id);
+    Task AddAsync(Sale sale);
+    Task SaveChangesAsync();
 }

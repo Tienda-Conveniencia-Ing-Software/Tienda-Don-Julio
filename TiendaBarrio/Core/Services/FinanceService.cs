@@ -3,52 +3,54 @@ namespace TiendaBarrio.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence.Interfaces;
 
 public class FinanceService
 {
     private readonly ICashRepository _repository;
-    private int _nextId = 1;
 
-    // Inyección de dependencias para desacoplar el repositorio
     public FinanceService(ICashRepository repository)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+    }
 
-        var existing = _repository.LoadMovements();
-        if (existing != null && existing.Count > 0)
+    public async Task<CashMovement> RegisterIncomeAsync(double amount, string description)
+    {
+        return await RegisterMovementAsync(MovementType.Ingreso, amount, description);
+    }
+
+    public async Task<CashMovement> RegisterExpenseAsync(double amount, string description)
+    {
+        return await RegisterMovementAsync(MovementType.Gasto, amount, description);
+    }
+
+    public async Task<CashMovement> RegisterInventoryPurchaseAsync(double amount, string description)
+    {
+        return await RegisterMovementAsync(MovementType.CompraInventario, amount, description);
+    }
+
+    private async Task<CashMovement> RegisterMovementAsync(MovementType type, double amount, string description)
+    {
+        // ✅ Ya NO calculamos el ID manualmente. La BD lo asigna.
+        var movement = new CashMovement
         {
-            _nextId = existing.Max(m => m.Id) + 1;
-        }
-    }
+            Type = type,
+            Amount = amount,
+            Description = description,
+            Date = DateTime.Now
+        };
 
-    public CashMovement RegisterIncome(double amount, string description)
-    {
-        return RegisterMovement(MovementType.Ingreso, amount, description);
-    }
+        await _repository.AddAsync(movement);
+        await _repository.SaveChangesAsync();
 
-    public CashMovement RegisterExpense(double amount, string description)
-    {
-        return RegisterMovement(MovementType.Gasto, amount, description);
-    }
-
-    public CashMovement RegisterInventoryPurchase(double amount, string description)
-    {
-        return RegisterMovement(MovementType.CompraInventario, amount, description);
-    }
-
-    private CashMovement RegisterMovement(MovementType type, double amount, string description)
-    {
-        var movement = new CashMovement(_nextId, type, amount, description);
-        _nextId++;
-        _repository.SaveMovement(movement);
         return movement;
     }
 
-    public Balance GetBalance()
+    public async Task<Balance> GetBalanceAsync()
     {
-        var movements = _repository.LoadMovements();
+        var movements = await _repository.GetAllAsync();
 
         double totalIncome = movements
             .Where(m => m.Type == MovementType.Ingreso)
@@ -61,8 +63,8 @@ public class FinanceService
         return new Balance(totalIncome, totalExpense);
     }
 
-    public List<CashMovement> GetHistory()
+    public async Task<List<CashMovement>> GetHistoryAsync()
     {
-        return _repository.LoadMovements();
+        return await _repository.GetAllAsync();
     }
 }

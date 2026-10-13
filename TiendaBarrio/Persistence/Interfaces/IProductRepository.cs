@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using TiendaBarrio.Core.Models;
 
 namespace TiendaBarrio.Persistence.Interfaces;
 
-using TiendaBarrio.Core.Models;
-
-public interface IOrderRepository
+public interface IProductRepository
 {
-    void SaveOrder(Order order);
-    List<string> LoadOrderLines();
+    Task<List<Product>> GetAllAsync();
+    Task<Product?> GetByIdAsync(int id);
+    Task AddAsync(Product product);
+    Task UpdateAsync(Product product);
+    Task DeleteAsync(int id);
+    Task SaveChangesAsync();
 }

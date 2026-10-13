@@ -14,18 +14,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    if (connectionString != null && connectionString.Contains("Host="))
+    if (string.IsNullOrEmpty(connectionString))
     {
-        options.UseNpgsql(connectionString);
-    }
-    else
-    {
-        options.UseSqlite(connectionString ?? "Data Source=tienda.db");
+        throw new InvalidOperationException("La cadena de conexión 'DefaultConnection' no está configurada.");
     }
 
-    // Ignorar la advertencia de cambios pendientes para desarrollo
+    options.UseNpgsql(connectionString);
     options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
+
 // Registrar repositorios y servicios del Core (definido en Core/Config)
 builder.Services.AddTiendaCore();
 

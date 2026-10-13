@@ -7,7 +7,6 @@ using TiendaBarrio.Utils;
 
 public class InventoryMenu
 {
-    // Un cliente de prueba con rol de Trabajador para no bloquear la consola vieja
     private readonly Cliente _adminMock = new Cliente
     {
         Id = 1,
@@ -16,6 +15,7 @@ public class InventoryMenu
         Role = "Trabajador",
         PasswordHash = "admin123"
     };
+
     private readonly InventoryService _inventoryService;
 
     public InventoryMenu(InventoryService inventoryService)
@@ -23,7 +23,7 @@ public class InventoryMenu
         _inventoryService = inventoryService;
     }
 
-    public void Start(List<Product> products)
+    public async Task StartAsync(List<Product> products)
     {
         bool exit = true;
         while (exit)
@@ -59,27 +59,27 @@ public class InventoryMenu
                     break;
 
                 case 2:
-                    RegisterProductFlow(products);
+                    await RegisterProductFlowAsync(products);
                     new Pause().pause();
                     break;
 
                 case 3:
-                    UpdateProductFlow(products);
+                    await UpdateProductFlowAsync(products);
                     new Pause().pause();
                     break;
 
                 case 4:
-                    DeleteProductFlow(products);
+                    await DeleteProductFlowAsync(products);
                     new Pause().pause();
                     break;
 
                 case 5:
-                    IncreaseStockFlow(products);
+                    await IncreaseStockFlowAsync(products);
                     new Pause().pause();
                     break;
 
                 case 6:
-                    DecreaseStockFlow(products);
+                    await DecreaseStockFlowAsync(products);
                     new Pause().pause();
                     break;
 
@@ -111,7 +111,7 @@ public class InventoryMenu
         }
     }
 
-    private void RegisterProductFlow(List<Product> products)
+    private async Task RegisterProductFlowAsync(List<Product> products)
     {
         Console.WriteLine("Product name:");
         string name = Console.ReadLine() ?? "";
@@ -137,11 +137,11 @@ public class InventoryMenu
             return;
         }
 
-        var product = _inventoryService.RegisterProduct(_adminMock,products, name, price, purchasePrice, stock);
+        var product = await _inventoryService.RegisterProductAsync(_adminMock, products, name, price, purchasePrice, stock);
         Console.WriteLine($"Product registered: [{product.ID}] {product.Name}");
     }
 
-    private void UpdateProductFlow(List<Product> products)
+    private async Task UpdateProductFlowAsync(List<Product> products)
     {
         Console.WriteLine("Enter product ID to update:");
         if (!int.TryParse(Console.ReadLine(), out int id))
@@ -162,11 +162,11 @@ public class InventoryMenu
         string purchaseInput = Console.ReadLine() ?? "";
         double? newPurchasePrice = double.TryParse(purchaseInput, out double parsedPurchase) ? parsedPurchase : null;
 
-        bool success = _inventoryService.UpdateProduct(_adminMock,products, id, newName, newPrice, newPurchasePrice);
+        bool success = await _inventoryService.UpdateProductAsync(_adminMock, products, id, newName, newPrice, newPurchasePrice);
         Console.WriteLine(success ? "Product updated." : "Product not found.");
     }
 
-    private void DeleteProductFlow(List<Product> products)
+    private async Task DeleteProductFlowAsync(List<Product> products)
     {
         Console.WriteLine("Enter product ID to delete:");
         if (!int.TryParse(Console.ReadLine(), out int id))
@@ -175,11 +175,11 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.DeleteProduct(_adminMock,products, id);
+        bool success = await _inventoryService.DeleteProductAsync(_adminMock, products, id);
         Console.WriteLine(success ? "Product deleted." : "Product not found.");
     }
 
-    private void IncreaseStockFlow(List<Product> products)
+    private async Task IncreaseStockFlowAsync(List<Product> products)
     {
         Console.WriteLine("Enter product ID:");
         if (!int.TryParse(Console.ReadLine(), out int id))
@@ -195,11 +195,11 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.IncreaseStock(_adminMock, products, id, quantity);
+        bool success = await _inventoryService.IncreaseStockAsync(_adminMock, products, id, quantity);
         Console.WriteLine(success ? "Stock increased." : "Could not increase stock (check ID or quantity).");
     }
 
-    private void DecreaseStockFlow(List<Product> products)
+    private async Task DecreaseStockFlowAsync(List<Product> products)
     {
         Console.WriteLine("Enter product ID:");
         if (!int.TryParse(Console.ReadLine(), out int id))
@@ -215,7 +215,7 @@ public class InventoryMenu
             return;
         }
 
-        bool success = _inventoryService.DecreaseStock(_adminMock, products, id, quantity);
+        bool success = await _inventoryService.DecreaseStockAsync(_adminMock, products, id, quantity);
         Console.WriteLine(success ? "Stock decreased." : "Could not decrease stock (check ID, quantity or available stock).");
     }
 

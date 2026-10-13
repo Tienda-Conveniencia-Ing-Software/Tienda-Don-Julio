@@ -9,30 +9,64 @@ public class CashRepository : ICashRepository
 {
     private readonly AppDbContext _context;
 
-    // Constructor para Inyección de Dependencias
     public CashRepository(AppDbContext context)
     {
         _context = context;
     }
 
-    public List<CashMovement> LoadMovements()
+    public async Task<List<CashMovement>> GetAllAsync()
     {
-        return _context.Movimientos.AsNoTracking().ToList();
+        return await _context.Movimientos.ToListAsync();
     }
 
-    public void SaveMovement(CashMovement movement)
+    public async Task<CashMovement?> GetByIdAsync(int id)
     {
-        _context.Movimientos.Add(movement);
-        _context.SaveChanges();
+        return await _context.Movimientos.FirstOrDefaultAsync(m => m.Id == id);
     }
 
-    public List<CashMovement> GetMovements()
+    public async Task AddAsync(CashMovement movimiento)
     {
-        return LoadMovements();
+        await _context.Movimientos.AddAsync(movimiento);
     }
 
-    public void AddMovement(CashMovement movement)
+    public async Task UpdateAsync(CashMovement movimiento)
     {
-        SaveMovement(movement);
+        _context.Movimientos.Update(movimiento);
+        await Task.CompletedTask;
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var movimiento = await GetByIdAsync(id);
+        if (movimiento != null)
+        {
+            _context.Movimientos.Remove(movimiento);
+        }
+    }
+
+    public async Task<double> GetTotalIngresosAsync()
+    {
+        return await _context.Movimientos
+            .Where(m => m.Type == MovementType.Ingreso)
+            .SumAsync(m => m.Amount);
+    }
+
+    public async Task<double> GetTotalGastosAsync()
+    {
+        return await _context.Movimientos
+            .Where(m => m.Type == MovementType.Gasto)
+            .SumAsync(m => m.Amount);
+    }
+
+    public async Task<double> GetBalanceAsync()
+    {
+        var ingresos = await GetTotalIngresosAsync();
+        var gastos = await GetTotalGastosAsync();
+        return ingresos - gastos;
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

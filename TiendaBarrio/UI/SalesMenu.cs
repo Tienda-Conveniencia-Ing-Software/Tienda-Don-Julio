@@ -18,7 +18,8 @@ public class SalesMenu(
     private readonly SaleService _saleService = saleService;
     private readonly ShowProducts _showProducts = showProducts;
     private readonly CartMenu _cartMenu = cartMenu;
-    public void BuyStock(List<Product> products)
+
+    public async Task BuyStockAsync(List<Product> products)
     {
         bool exit = true;
         while (exit)
@@ -54,7 +55,7 @@ public class SalesMenu(
                     break;
 
                 case 3:
-                    CheckoutFlow(products);
+                    await CheckoutFlowAsync(products);
                     new Pause().pause();
                     break;
 
@@ -124,7 +125,7 @@ public class SalesMenu(
         }
     }
 
-    private void CheckoutFlow(List<Product> products)
+    private async Task CheckoutFlowAsync(List<Product> products)
     {
         if (_cart.Items.Count == 0)
         {
@@ -147,8 +148,8 @@ public class SalesMenu(
             return;
         }
 
-        // INTEGRACIÓN CON SALE SERVICE
-        var sale = _saleService.ProcessSale(_cart, products);
+        // ✅ INTEGRACIÓN CON SALE SERVICE (async)
+        var sale = await _saleService.ProcessSaleAsync(_cart, products);
 
         if (sale != null)
         {

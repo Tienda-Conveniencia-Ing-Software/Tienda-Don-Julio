@@ -1,13 +1,15 @@
-﻿namespace TiendaBarrio.Persistence.Interfaces;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using TiendaBarrio.Core.Models;
+
+namespace TiendaBarrio.Persistence.Interfaces;
 
 public interface IClienteRepository
 {
-    List<Cliente> LoadClientes();
-    void SaveClientes(List<Cliente> clientes);
-    Cliente? GetByEmail(string email);
-    Cliente? GetByCedula(string cedula);
-    void AddCliente(Cliente cliente);
+    Task<List<Cliente>> GetAllAsync();
+    Task<Cliente?> GetByIdAsync(int id);
+    Task AddAsync(Cliente cliente);
+    Task UpdateAsync(Cliente cliente);
+    Task DeleteAsync(int id);
+    Task SaveChangesAsync();
 }

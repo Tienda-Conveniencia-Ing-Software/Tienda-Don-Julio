@@ -2,8 +2,6 @@ namespace TiendaBarrio.UI;
 
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
-using TiendaBarrio.Persistence;
-using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
 
 public class FinanceMenu
@@ -15,7 +13,7 @@ public class FinanceMenu
         _financeService = financeService;
     }
 
-    public void Start()
+    public async Task StartAsync()
     {
         bool exit = true;
         while (exit)
@@ -43,22 +41,22 @@ public class FinanceMenu
                     break;
 
                 case 1:
-                    ShowBalance();
+                    await ShowBalanceAsync();
                     new Pause().pause();
                     break;
 
                 case 2:
-                    RegisterIncomeFlow();
+                    await RegisterIncomeFlowAsync();
                     new Pause().pause();
                     break;
 
                 case 3:
-                    RegisterExpenseFlow();
+                    await RegisterExpenseFlowAsync();
                     new Pause().pause();
                     break;
 
                 case 4:
-                    ShowHistory();
+                    await ShowHistoryAsync();
                     new Pause().pause();
                     break;
 
@@ -70,15 +68,15 @@ public class FinanceMenu
         }
     }
 
-    private void ShowBalance()
+    private async Task ShowBalanceAsync()
     {
-        Balance balance = _financeService.GetBalance();
+        Balance balance = await _financeService.GetBalanceAsync();
         Console.WriteLine($"Total income: {balance.TotalIncome}");
         Console.WriteLine($"Total expense: {balance.TotalExpense}");
         Console.WriteLine($"Current balance: {balance.CurrentBalance}");
     }
 
-    private void RegisterIncomeFlow()
+    private async Task RegisterIncomeFlowAsync()
     {
         Console.WriteLine("Enter amount:");
         if (!double.TryParse(Console.ReadLine(), out double amount) || amount <= 0)
@@ -90,11 +88,11 @@ public class FinanceMenu
         Console.WriteLine("Enter description:");
         string description = Console.ReadLine() ?? "Manual income";
 
-        _financeService.RegisterIncome(amount, description);
+        await _financeService.RegisterIncomeAsync(amount, description);
         Console.WriteLine("Income registered.");
     }
 
-    private void RegisterExpenseFlow()
+    private async Task RegisterExpenseFlowAsync()
     {
         Console.WriteLine("Enter amount:");
         if (!double.TryParse(Console.ReadLine(), out double amount) || amount <= 0)
@@ -106,13 +104,13 @@ public class FinanceMenu
         Console.WriteLine("Enter description:");
         string description = Console.ReadLine() ?? "Manual expense";
 
-        _financeService.RegisterExpense(amount, description);
+        await _financeService.RegisterExpenseAsync(amount, description);
         Console.WriteLine("Expense registered.");
     }
 
-    private void ShowHistory()
+    private async Task ShowHistoryAsync()
     {
-        var movements = _financeService.GetHistory();
+        var movements = await _financeService.GetHistoryAsync();
         if (movements.Count == 0)
         {
             Console.WriteLine("No movements yet.");

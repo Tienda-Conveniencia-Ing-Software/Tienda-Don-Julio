@@ -9,11 +9,9 @@ using TiendaBarrio.UI;
 
 class Program
 {
-    static void Main()
+    static async Task Main()
     {
         // Cargar variables de entorno desde .env (antes de crear el DbContext).
-        // Se busca en la carpeta del proyecto para que funcione sin importar
-        // desde dónde se ejecute el comando.
         string envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env");
         if (File.Exists(envPath))
         {
@@ -40,6 +38,6 @@ class Program
 
         // Un solo scope para toda la sesión: el carrito y FinanceService se comparten
         using var scope = provider.CreateScope();
-        scope.ServiceProvider.GetRequiredService<MainMenu>().Start();
+        await scope.ServiceProvider.GetRequiredService<MainMenu>().StartAsync();
     }
 }
