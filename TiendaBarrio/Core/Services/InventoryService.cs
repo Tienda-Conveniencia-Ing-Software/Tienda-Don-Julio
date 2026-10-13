@@ -28,10 +28,10 @@ public class InventoryService
     }
 
     // Lectura directa desde el repositorio (usada por la API para no tocar repositorios en los controllers)
-    public List<Product> GetProducts()
-    {
-        return _productRepository.LoadProducts();
-    }
+public async Task<List<Product>> GetProductsAsync()
+{
+    return await _productRepository.GetAllAsync();
+}
 
     public Product? FindProduct(List<Product> products, int id)
     {
