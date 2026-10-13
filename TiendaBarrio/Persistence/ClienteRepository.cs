@@ -1,63 +1,51 @@
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence.Interfaces;
 
 namespace TiendaBarrio.Persistence;
 
 public class ClienteRepository : IClienteRepository
 {
-    private readonly TiendaDbContext _context;
+    private readonly AppDbContext _context;
 
-    // Constructor para Inyección de Dependencias
-    public ClienteRepository(TiendaDbContext context)
+    public ClienteRepository(AppDbContext context)
     {
         _context = context;
     }
 
-    public List<Cliente> LoadClientes()
+    public async Task<List<Cliente>> GetAllAsync()
     {
-        return _context.Clientes.AsNoTracking().ToList();
+        return await _context.Clientes.ToListAsync();
     }
 
-    public void SaveClientes(List<Cliente> clientes)
+    public async Task<Cliente?> GetByIdAsync(int id)
     {
-        foreach (var cliente in clientes)
+        return await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task AddAsync(Cliente cliente)
+    {
+        await _context.Clientes.AddAsync(cliente);
+    }
+
+    public async Task UpdateAsync(Cliente cliente)
+    {
+        _context.Clientes.Update(cliente);
+        await Task.CompletedTask;
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var cliente = await GetByIdAsync(id);
+        if (cliente != null)
         {
-            AddCliente(cliente);
+            _context.Clientes.Remove(cliente);
         }
     }
 
-    public Cliente? GetByEmail(string email)
+    public async Task SaveChangesAsync()
     {
-        return _context.Clientes
-            .AsNoTracking()
-            .FirstOrDefault(c => c.Email.ToLower() == email.ToLower());
-    }
-
-    public Cliente? GetByCedula(string cedula)
-    {
-        return _context.Clientes
-            .AsNoTracking()
-            .FirstOrDefault(c => c.Cedula == cedula);
-    }
-
-    public void AddCliente(Cliente cliente)
-    {
-        var existing = _context.Clientes.FirstOrDefault(c => c.Id == cliente.Id);
-        if (existing != null)
-        {
-            _context.Entry(existing).CurrentValues.SetValues(cliente);
-        }
-        else
-        {
-            _context.Clientes.Add(cliente);
-        }
-        _context.SaveChanges();
-    }
-
-    public void SaveCliente(Cliente cliente)
-    {
-        AddCliente(cliente);
+        await _context.SaveChangesAsync();
     }
 }

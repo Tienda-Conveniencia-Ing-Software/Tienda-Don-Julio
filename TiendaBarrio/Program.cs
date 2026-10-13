@@ -4,16 +4,14 @@ namespace TiendaBarrio;
 
 using Microsoft.Extensions.DependencyInjection;
 using TiendaBarrio.Core.Config;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.UI;
 
 class Program
 {
-    static void Main()
+    static async Task Main()
     {
         // Cargar variables de entorno desde .env (antes de crear el DbContext).
-        // Se busca en la carpeta del proyecto para que funcione sin importar
-        // desde dónde se ejecute el comando.
         string envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env");
         if (File.Exists(envPath))
         {
@@ -22,8 +20,8 @@ class Program
 
         var services = new ServiceCollection();
 
-        // Base de datos (usa la configuración por defecto de TiendaDbContext)
-        services.AddDbContext<TiendaDbContext>();
+        // Base de datos (usa la configuración por defecto de AppDbContext)
+        services.AddDbContext<AppDbContext>();
 
         // Repositorios y servicios del Core
         services.AddTiendaCore();
@@ -40,6 +38,6 @@ class Program
 
         // Un solo scope para toda la sesión: el carrito y FinanceService se comparten
         using var scope = provider.CreateScope();
-        scope.ServiceProvider.GetRequiredService<MainMenu>().Start();
+        await scope.ServiceProvider.GetRequiredService<MainMenu>().StartAsync();
     }
 }

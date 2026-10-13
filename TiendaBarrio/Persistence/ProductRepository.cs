@@ -1,48 +1,51 @@
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence.Interfaces;
 
 namespace TiendaBarrio.Persistence;
 
 public class ProductRepository : IProductRepository
 {
-    private readonly TiendaDbContext _context;
+    private readonly AppDbContext _context;
 
-    // Constructor para Inyección de Dependencias
-    public ProductRepository(TiendaDbContext context)
+    public ProductRepository(AppDbContext context)
     {
         _context = context;
     }
 
-    public List<Product> LoadProducts()
+    public async Task<List<Product>> GetAllAsync()
     {
-        return _context.Productos.AsNoTracking().ToList();
+        return await _context.Productos.ToListAsync();
     }
 
-    public void SaveProducts(List<Product> products)
+    public async Task<Product?> GetByIdAsync(int id)
     {
-        foreach (var product in products)
-        {
-            var existing = _context.Productos.FirstOrDefault(p => p.ID == product.ID);
-            if (existing != null)
-            {
-                _context.Entry(existing).CurrentValues.SetValues(product);
-            }
-            else
-            {
-                _context.Productos.Add(product);
-            }
-        }
+        return await _context.Productos.FirstOrDefaultAsync(p => p.ID == id);
+    }
 
-        // La lista recibida es el estado completo: se eliminan de la BD los productos que ya no estan
-        var ids = products.Select(p => p.ID).ToHashSet();
-        var removed = _context.Productos.Where(p => !ids.Contains(p.ID)).ToList();
-        if (removed.Count > 0)
-        {
-            _context.Productos.RemoveRange(removed);
-        }
+    public async Task AddAsync(Product product)
+    {
+        await _context.Productos.AddAsync(product);
+    }
 
-        _context.SaveChanges();
+    public async Task UpdateAsync(Product product)
+    {
+        _context.Productos.Update(product);
+        await Task.CompletedTask;
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var product = await GetByIdAsync(id);
+        if (product != null)
+        {
+            _context.Productos.Remove(product);
+        }
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }

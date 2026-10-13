@@ -3,6 +3,7 @@ namespace TiendaBarrio.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Persistence.Interfaces;
 
@@ -18,7 +19,6 @@ public class InventoryService
         _financeService = financeService ?? throw new ArgumentNullException(nameof(financeService));
     }
 
-    // Método privado para asegurar que la acción sea realizada por un trabajador
     private static void ValidarPermisoTrabajador(Cliente usuario)
     {
         if (usuario == null || !usuario.EsTrabajador())
@@ -38,7 +38,6 @@ public class InventoryService
         return products.FirstOrDefault(p => p.ID == id);
     }
 
-    // Consulta pública: cualquier usuario o cliente puede listar/ver productos
     public List<Product> GetAllProducts(List<Product> products)
     {
         return products;
@@ -49,27 +48,29 @@ public class InventoryService
         return products.Where(p => p.Stock <= LowStockThreshold).ToList();
     }
 
-    // Acciones administrativas protegidas por rol
-    public Product RegisterProduct(Cliente usuario, List<Product> products, string name, double price, double purchasePrice, int stock)
+    public async Task<Product> RegisterProductAsync(Cliente usuario, List<Product> products, string name, double price, double purchasePrice, int stock)
     {
         ValidarPermisoTrabajador(usuario);
 
         int id = products.Count > 0 ? products.Max(p => p.ID) + 1 : 1;
         var product = new Product(id, name, price, purchasePrice, stock);
-        products.Add(product);
 
-        _productRepository.SaveProducts(products);
+        // ✅ Guardar con EF Core
+        await _productRepository.AddAsync(product);
+        await _productRepository.SaveChangesAsync();
+
+        products.Add(product);
 
         if (stock > 0)
         {
             double cost = purchasePrice * stock;
-            _financeService.RegisterInventoryPurchase(cost, $"Producto nuevo: {name.Trim()} x{stock}");
+            await _financeService.RegisterInventoryPurchaseAsync(cost, $"Producto nuevo: {name.Trim()} x{stock}");
         }
 
         return product;
     }
 
-    public bool UpdateProduct(Cliente usuario, List<Product> products, int id, string? newName, double? newPrice, double? newPurchasePrice)
+    public async Task<bool> UpdateProductAsync(Cliente usuario, List<Product> products, int id, string? newName, double? newPrice, double? newPurchasePrice)
     {
         ValidarPermisoTrabajador(usuario);
 
@@ -79,20 +80,17 @@ public class InventoryService
             return false;
         }
 
-        int index = products.IndexOf(product);
+        if (!string.IsNullOrWhiteSpace(newName)) product.Name = newName;
+        if (newPrice.HasValue) product.Price = newPrice.Value;
+        if (newPurchasePrice.HasValue) product.PurchasePrice = newPurchasePrice.Value;
 
-        string finalName = newName ?? product.Name;
-        double finalPrice = newPrice ?? product.Price;
-        double finalPurchasePrice = newPurchasePrice ?? product.PurchasePrice;
+        await _productRepository.UpdateAsync(product);
+        await _productRepository.SaveChangesAsync();
 
-        var updated = new Product(product.ID, finalName, finalPrice, finalPurchasePrice, product.Stock);
-        products[index] = updated;
-
-        _productRepository.SaveProducts(products);
         return true;
     }
 
-    public bool DeleteProduct(Cliente usuario, List<Product> products, int id)
+    public async Task<bool> DeleteProductAsync(Cliente usuario, List<Product> products, int id)
     {
         ValidarPermisoTrabajador(usuario);
 
@@ -101,13 +99,15 @@ public class InventoryService
         {
             return false;
         }
+
+        await _productRepository.DeleteAsync(id);
+        await _productRepository.SaveChangesAsync();
 
         products.Remove(product);
-        _productRepository.SaveProducts(products);
         return true;
     }
 
-    public bool IncreaseStock(Cliente usuario, List<Product> products, int id, int quantity)
+    public async Task<bool> IncreaseStockAsync(Cliente usuario, List<Product> products, int id, int quantity)
     {
         ValidarPermisoTrabajador(usuario);
 
@@ -118,15 +118,16 @@ public class InventoryService
         }
 
         product.IncreaseStock(quantity);
-        _productRepository.SaveProducts(products);
+        await _productRepository.UpdateAsync(product);
+        await _productRepository.SaveChangesAsync();
 
         double cost = product.PurchasePrice * quantity;
-        _financeService.RegisterInventoryPurchase(cost, $"Reposicion de stock: {product.Name} x{quantity}");
+        await _financeService.RegisterInventoryPurchaseAsync(cost, $"Reposicion de stock: {product.Name} x{quantity}");
 
         return true;
     }
 
-    public bool DecreaseStock(Cliente usuario, List<Product> products, int id, int quantity)
+    public async Task<bool> DecreaseStockAsync(Cliente usuario, List<Product> products, int id, int quantity)
     {
         ValidarPermisoTrabajador(usuario);
 
@@ -137,7 +138,9 @@ public class InventoryService
         }
 
         product.ReduceStock(quantity);
-        _productRepository.SaveProducts(products);
+        await _productRepository.UpdateAsync(product);
+        await _productRepository.SaveChangesAsync();
+
         return true;
     }
 }

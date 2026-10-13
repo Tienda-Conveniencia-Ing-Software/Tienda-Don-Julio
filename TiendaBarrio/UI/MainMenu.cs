@@ -2,7 +2,6 @@ namespace TiendaBarrio.UI;
 
 using TiendaBarrio.Core.Models;
 using TiendaBarrio.Core.Services;
-
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Utils;
@@ -20,9 +19,9 @@ public class MainMenu(
     private readonly InventoryMenu _inventoryMenu = inventoryMenu;
     private readonly FinanceMenu _financeMenu = financeMenu;
 
-    public void Start()
+    public async Task StartAsync()
     {
-        List<Product> products = _productRepository.LoadProducts();
+        List<Product> products = await _productRepository.GetAllAsync();
         bool exit = true;
         while (exit)
         {
@@ -48,17 +47,17 @@ public class MainMenu(
                     break;
 
                 case 2:
-                    _salesMenu.BuyStock(products);
+                    await _salesMenu.BuyStockAsync(products);
                     new Pause().pause();
                     break;
 
                 case 3:
-                    _inventoryMenu.Start(products);
+                    await _inventoryMenu.StartAsync(products);
                     new Pause().pause();
                     break;
 
                 case 4:
-                    _financeMenu.Start();
+                    await _financeMenu.StartAsync();
                     new Pause().pause();
                     break;
 

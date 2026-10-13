@@ -1,41 +1,46 @@
-namespace TiendaBarrio.Persistence;
-
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Globalization;
+using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence.Interfaces;
-using TiendaBarrio.Core.Config;
+
+namespace TiendaBarrio.Persistence;
 
 public class OrderRepository : IOrderRepository
 {
-    // Ruta centralizada en DataConfig
-    private string RutaPedidos => DataConfig.PedidosFile;
+    private readonly AppDbContext _context;
 
-    public void SaveOrder(Order order)
+    public OrderRepository(AppDbContext context)
     {
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
-
-        // Format: OrderId;Status;CreatedAt;Total;ProductId:Qty,ProductId:Qty,...
-        string itemsPart = string.Join(",", order.Items.Select(i => $"{i.Product.ID}:{i.Quantity}"));
-        string line = $"{order.Id};{order.Status};{order.CreatedAt:yyyy-MM-dd HH:mm:ss};{order.Total.ToString(CultureInfo.InvariantCulture)};{itemsPart}";
-
-        File.AppendAllLines(RutaPedidos, new[] { line });
+        _context = context;
     }
 
-    public List<string> LoadOrderLines()
+    public async Task<List<Order>> GetAllAsync()
     {
-        // Asegura que la carpeta Data exista
-        DataConfig.EnsureDataFolderExists();
+        return await _context.Pedidos
+            .Include(o => o.Items)
+            .ToListAsync();
+    }
 
-        if (!File.Exists(RutaPedidos))
-            return new List<string>();
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _context.Pedidos
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
 
-        return File.ReadAllLines(RutaPedidos)
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .ToList();
+    public async Task AddAsync(Order order)
+    {
+        await _context.Pedidos.AddAsync(order);
+    }
+
+    public async Task UpdateAsync(Order order)
+    {
+        _context.Pedidos.Update(order);
+        await Task.CompletedTask;
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
     }
 }
