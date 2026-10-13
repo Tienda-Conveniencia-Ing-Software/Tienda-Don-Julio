@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence.Interfaces;
 
 namespace TiendaBarrio.Persistence;
 
 public class CashRepository : ICashRepository
 {
-    private readonly TiendaDbContext _context;
+    private readonly AppDbContext _context;
 
     // Constructor para Inyección de Dependencias
-    public CashRepository(TiendaDbContext context)
+    public CashRepository(AppDbContext context)
     {
         _context = context;
     }

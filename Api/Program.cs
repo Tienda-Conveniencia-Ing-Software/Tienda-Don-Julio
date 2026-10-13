@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Config;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Services;
@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configurar DbContext con la cadena de conexión de PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<TiendaDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -49,7 +49,7 @@ var app = builder.Build();
 // Aplicar migraciones automáticamente al iniciar
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<TiendaDbContext>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
 

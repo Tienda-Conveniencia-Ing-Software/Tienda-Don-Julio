@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence.Interfaces;
 
 namespace TiendaBarrio.Persistence;
 
 public class ProductRepository : IProductRepository
 {
-    private readonly TiendaDbContext _context;
+    private readonly AppDbContext _context;
 
     // Constructor para Inyección de Dependencias
-    public ProductRepository(TiendaDbContext context)
+    public ProductRepository(AppDbContext context)
     {
         _context = context;
     }

@@ -1,15 +1,15 @@
-namespace TiendaBarrio.Data;
+namespace TiendaBarrio.Persistence.Data;
 
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
 
-public class TiendaDbContext : DbContext
+public class AppDbContext : DbContext
 {
     // Constructor por defecto (para instanciación manual)
-    public TiendaDbContext() { }
+    public AppDbContext() { }
 
     // Constructor para Inyección de Dependencias (requerido por Web API y Blazor)
-    public TiendaDbContext(DbContextOptions<TiendaDbContext> options) : base(options) { }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     // DbSets (cada uno representa una tabla)
     public DbSet<Product> Productos { get; set; }

@@ -4,7 +4,7 @@ namespace TiendaBarrio;
 
 using Microsoft.Extensions.DependencyInjection;
 using TiendaBarrio.Core.Config;
-using TiendaBarrio.Data;
+using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.UI;
 
 class Program
@@ -22,8 +22,8 @@ class Program
 
         var services = new ServiceCollection();
 
-        // Base de datos (usa la configuración por defecto de TiendaDbContext)
-        services.AddDbContext<TiendaDbContext>();
+        // Base de datos (usa la configuración por defecto de AppDbContext)
+        services.AddDbContext<AppDbContext>();
 
         // Repositorios y servicios del Core
         services.AddTiendaCore();
