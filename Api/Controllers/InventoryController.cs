@@ -22,9 +22,9 @@ public class InventoryController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<ProductResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetProducts()
+    public async Task<IActionResult> GetProducts()
     {
-        var products = _inventoryService.GetProducts();
+        var products = await _inventoryService.GetProductsAsync();
         return Ok(_inventoryService.GetAllProducts(products).Select(ProductResponseDto.From));
     }
 
@@ -34,9 +34,9 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(typeof(ProductResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetProduct(int id)
+    public async Task<IActionResult> GetProduct(int id)
     {
-        var product = _inventoryService.FindProduct(_inventoryService.GetProducts(), id);
+        var product = _inventoryService.FindProduct(await _inventoryService.GetProductsAsync(), id);
         if (product == null)
         {
             return NotFound(new MessageDto("Producto no encontrado."));
@@ -51,9 +51,9 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetLowStock()
+    public async Task<IActionResult> GetLowStock()
     {
-        var low = _inventoryService.GetLowStockProducts(_inventoryService.GetProducts());
+        var low = _inventoryService.GetLowStockProducts(await _inventoryService.GetProductsAsync());
         return Ok(low.Select(ProductResponseDto.From));
     }
 
@@ -65,10 +65,10 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult RegisterProduct([FromBody] ProductDto dto)
+    public async Task<IActionResult> RegisterProduct([FromBody] ProductDto dto)
     {
-        var product = _inventoryService.RegisterProduct(
-            User.ToCliente(), _inventoryService.GetProducts(),
+        var product = await _inventoryService.RegisterProductAsync(
+            User.ToCliente(), await _inventoryService.GetProductsAsync(),
             dto.Name, dto.Price, dto.PurchasePrice, dto.Stock);
 
         return CreatedAtAction(nameof(GetProduct), new { id = product.ID }, ProductResponseDto.From(product));
@@ -83,15 +83,15 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult UpdateProduct(int id, [FromBody] UpdateProductDto dto)
+    public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
     {
         if (dto.Name == null && dto.Price == null && dto.PurchasePrice == null)
         {
             return BadRequest(new MessageDto("Debe enviar al menos un campo para modificar."));
         }
 
-        var updated = _inventoryService.UpdateProduct(
-            User.ToCliente(), _inventoryService.GetProducts(),
+        var updated = await _inventoryService.UpdateProductAsync(
+            User.ToCliente(), await _inventoryService.GetProductsAsync(),
             id, dto.Name, dto.Price, dto.PurchasePrice);
 
         return updated
@@ -107,10 +107,10 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult DeleteProduct(int id)
+    public async Task<IActionResult> DeleteProduct(int id)
     {
-        var deleted = _inventoryService.DeleteProduct(
-            User.ToCliente(), _inventoryService.GetProducts(), id);
+        var deleted = await _inventoryService.DeleteProductAsync(
+            User.ToCliente(), await _inventoryService.GetProductsAsync(), id);
 
         return deleted
             ? Ok(new MessageDto("Producto eliminado correctamente."))
@@ -126,14 +126,14 @@ public class InventoryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult ChangeStock(int id, [FromBody] StockChangeDto dto)
+    public async Task<IActionResult> ChangeStock(int id, [FromBody] StockChangeDto dto)
     {
         if (dto.Quantity == 0)
         {
             return BadRequest(new MessageDto("La cantidad no puede ser 0."));
         }
 
-        var products = _inventoryService.GetProducts();
+        var products = await _inventoryService.GetProductsAsync();
         if (_inventoryService.FindProduct(products, id) == null)
         {
             return NotFound(new MessageDto("Producto no encontrado."));
@@ -141,8 +141,8 @@ public class InventoryController : ControllerBase
 
         var user = User.ToCliente();
         var ok = dto.Quantity > 0
-            ? _inventoryService.IncreaseStock(user, products, id, dto.Quantity)
-            : _inventoryService.DecreaseStock(user, products, id, -dto.Quantity);
+            ? await _inventoryService.IncreaseStockAsync(user, products, id, dto.Quantity)
+            : await _inventoryService.DecreaseStockAsync(user, products, id, -dto.Quantity);
 
         return ok
             ? Ok(new MessageDto("Stock actualizado correctamente."))
