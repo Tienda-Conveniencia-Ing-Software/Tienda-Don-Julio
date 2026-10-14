@@ -215,7 +215,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "123456789",
                             Email = "admin@donjulio.com",
                             Nombre = "Administrador Don Julio",
-                            PasswordHash = "hash_admin",
+                            PasswordHash = "$2b$11$rLjyHkVUytKYZbxncw/63eKyr2MuYGtdDzIT6gY/0JN3RK3qZPVwe",
                             Role = "Trabajador",
                             Telefono = "3001234567"
                         },
@@ -225,7 +225,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "12345678",
                             Email = "juan@test.com",
                             Nombre = "Juan Perez",
-                            PasswordHash = "hash_juan",
+                            PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e",
                             Role = "Cliente",
                             Telefono = "3001234567"
                         },
@@ -235,7 +235,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "87654321",
                             Email = "maria@test.com",
                             Nombre = "Maria Lopez",
-                            PasswordHash = "hash_maria",
+                            PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e",
                             Role = "Cliente",
                             Telefono = "3007654321"
                         },
@@ -245,7 +245,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "11223344",
                             Email = "carlos@test.com",
                             Nombre = "Carlos Ruiz",
-                            PasswordHash = "hash_carlos",
+                            PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e",
                             Role = "Trabajador",
                             Telefono = "3001122334"
                         },
@@ -255,7 +255,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "44332211",
                             Email = "ana@test.com",
                             Nombre = "Ana Torres",
-                            PasswordHash = "hash_ana",
+                            PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e",
                             Role = "Cliente",
                             Telefono = "3004433221"
                         },
@@ -265,7 +265,7 @@ namespace TiendaBarrio.Migrations
                             Cedula = "55667788",
                             Email = "pedro@test.com",
                             Nombre = "Pedro Gomez",
-                            PasswordHash = "hash_pedro",
+                            PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e",
                             Role = "Cliente",
                             Telefono = "3005566778"
                         });
