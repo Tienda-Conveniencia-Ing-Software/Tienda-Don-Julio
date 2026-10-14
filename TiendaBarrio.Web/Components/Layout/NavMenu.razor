@@ -1,7 +1,12 @@
-﻿<div>
+@implements IDisposable
+@inject AuthSession Session
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div>
 	<div class="top-row ps-3 navbar navbar-dark">
 		<div class="container-fluid">
-			<a class="navbar-brand" href="">TiendaBarrio.Web</a>
+			<a class="navbar-brand" href="">Tienda Don Julio</a>
 		</div>
 	</div>
 
@@ -11,39 +16,58 @@
 		<nav class="flex-column">
 
 			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="inventario">
-					<span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Inventario
-				</NavLink>
-			</div>
-			
-			<div class="nav-item px-3">
 				<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
 					<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Inicio
 				</NavLink>
 			</div>
 
 			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="login">
-					<span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Iniciar Sesión
-				</NavLink>
-			</div>
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="finanzas">
-					<span class="bi bi-cash-stack-nav-menu" aria-hidden="true"></span> Finanzas
+				<NavLink class="nav-link" href="inventario">
+					<span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Inventario
 				</NavLink>
 			</div>
 
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="counter">
-					<span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Contador
-				</NavLink>
-			</div>
+			@if (Session.IsWorker)
+			{
+				<div class="nav-item px-3">
+					<NavLink class="nav-link" href="finanzas">
+						<span class="bi bi-cash-stack-nav-menu" aria-hidden="true"></span> Finanzas
+					</NavLink>
+				</div>
+			}
 
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="weather">
-					<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Clima
-				</NavLink>
-			</div>
+			@if (Session.IsLoggedIn)
+			{
+				<div class="nav-item px-3 text-white-50 small mt-3">
+					@Session.Nombre<br />
+					<span class="badge bg-secondary">@Session.Role</span>
+				</div>
+				<div class="nav-item px-3 mt-2">
+					<button class="btn btn-sm btn-outline-light w-100" @onclick="CerrarSesion">Cerrar sesión</button>
+				</div>
+			}
+			else
+			{
+				<div class="nav-item px-3">
+					<NavLink class="nav-link" href="login">
+						<span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Iniciar sesión
+					</NavLink>
+				</div>
+			}
 		</nav>
 	</div>
 </div>
+
+@code {
+	protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+
+	private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+
+	private void CerrarSesion()
+	{
+		Api.Logout();
+		Navigation.NavigateTo("login");
+	}
+
+	public void Dispose() => Session.Changed -= OnSessionChanged;
+}

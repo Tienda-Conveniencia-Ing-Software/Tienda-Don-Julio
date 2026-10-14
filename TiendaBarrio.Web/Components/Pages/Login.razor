@@ -1,93 +1,87 @@
 @page "/login"
-@using TiendaBarrio.Core.Models
-@inject HttpClient Http
+@inject ApiClient Api
+@inject AuthSession Session
 @inject NavigationManager Navigation
 
-<PageTitle>Login - TiendaBarrio</PageTitle>
+<PageTitle>Iniciar sesión - Tienda Don Julio</PageTitle>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
-                <h4 class="card-title mb-0">Iniciar Sesión</h4>
+                <h4 class="card-title mb-0">Iniciar sesión</h4>
             </div>
             <div class="card-body">
-                @if (!string.IsNullOrEmpty(errorMessage))
+
+                @if (Session.IsLoggedIn)
                 {
-                    <div class="alert alert-danger" role="alert">
-                        @errorMessage
+                    <div class="alert alert-success">
+                        Sesión iniciada como <strong>@Session.Nombre</strong> (@Session.Role).
                     </div>
+                    <a class="btn btn-primary w-100 mb-2" href="inventario">Ir al inventario</a>
+                    <button class="btn btn-outline-secondary w-100" @onclick="Api.Logout">Cerrar sesión</button>
                 }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">@errorMessage</div>
+                    }
 
-                <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
-                    <DataAnnotationsValidator />
+                    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                        <div class="mb-3">
+                            <label class="form-label">Correo electrónico</label>
+                            <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="admin@donjulio.com" />
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Correo Electrónico</label>
-                        <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="admin@donjulio.com" />
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="******" />
+                        </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="******" />
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-                </EditForm>
+                        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                            @(isLoading ? "Ingresando..." : "Ingresar")
+                        </button>
+                    </EditForm>
+                }
             </div>
         </div>
     </div>
 </div>
-@code {
-    [SupplyParameterFromForm]
-    private LoginRequest loginModel { get; set; } = new();
 
+@code {
+    private readonly LoginModel loginModel = new();
     private string? errorMessage;
+    private bool isLoading;
 
     private async Task HandleLogin()
     {
+        errorMessage = null;
+
         if (string.IsNullOrWhiteSpace(loginModel.Email) || string.IsNullOrWhiteSpace(loginModel.Password))
         {
             errorMessage = "El correo y la contraseña son obligatorios.";
             return;
         }
 
-        bool isSuccess = false;
+        isLoading = true;
+        var result = await Api.LoginAsync(loginModel.Email.Trim(), loginModel.Password);
+        isLoading = false;
 
-        try
+        if (result.Ok)
         {
-            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
-
-            if (response.IsSuccessStatusCode)
-            {
-                isSuccess = true;
-            }
-            else
-            {
-                var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-                errorMessage = error?.Message ?? "Credenciales inválidas.";
-            }
+            loginModel.Password = string.Empty;
+            Navigation.NavigateTo("inventario");
         }
-        catch (Exception ex)
+        else
         {
-            errorMessage = "Error de conexión con la API: " + ex.Message;
-        }
-
-        // Realizamos la navegación fuera del bloque try-catch para evitar atrapar NavigationException
-        if (isSuccess)
-        {
-            Navigation.NavigateTo("/inventario");
+            errorMessage = result.Error ?? "Credenciales inválidas.";
         }
     }
 
-    public class LoginRequest
+    private class LoginModel
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
-    }
-
-    public class ErrorResponse
-    {
-        public string Message { get; set; } = string.Empty;
     }
 }
