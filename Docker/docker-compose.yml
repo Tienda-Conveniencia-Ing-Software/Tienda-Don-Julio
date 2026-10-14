@@ -1,22 +1,22 @@
-version: '3.8'
+name: tienda-don-julio
 
 services:
   db:
     image: postgres:16-alpine
     container_name: tiendabarrio_db
     environment:
-      POSTGRES_DB: tiendabarrio
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-tiendabarrio}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tiendabarrio}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
     build:
@@ -25,14 +25,17 @@ services:
     container_name: tiendabarrio_api
     ports:
       - "5222:8080"
-      - "5223:80"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tiendabarrio;Username=postgres;Password=postgres
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
+      # Development para que Swagger esté disponible en http://localhost:5222/swagger
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-tiendabarrio};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__Key: ${JWT_KEY:-clave-solo-para-desarrollo-local-cambiar-en-produccion-0123456789}
+      Jwt__Issuer: TiendaDonJulio.Api
+      Jwt__Audience: TiendaDonJulio.Clients
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -24,9 +24,9 @@ public class FinanceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetBalance()
+    public async Task<IActionResult> GetBalance()
     {
-        return Ok(BalanceResponseDto.From(_financeService.GetBalance()));
+        return Ok(BalanceResponseDto.From(await _financeService.GetBalanceAsync()));
     }
 
     /// <summary>Historial de movimientos de caja.</summary>
@@ -35,9 +35,9 @@ public class FinanceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult GetMovements()
+    public async Task<IActionResult> GetMovements()
     {
-        return Ok(_financeService.GetHistory().Select(MovementResponseDto.From));
+        return Ok((await _financeService.GetHistoryAsync()).Select(MovementResponseDto.From));
     }
 
     /// <summary>Registra un ingreso o gasto manual.</summary>
@@ -47,16 +47,16 @@ public class FinanceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public IActionResult RegisterMovement([FromBody] MovementDto dto)
+    public async Task<IActionResult> RegisterMovement([FromBody] MovementDto dto)
     {
         CashMovement movement;
         switch (dto.Type)
         {
             case MovementType.Ingreso:
-                movement = _financeService.RegisterIncome(dto.Amount, dto.Description);
+                movement = await _financeService.RegisterIncomeAsync(dto.Amount, dto.Description);
                 break;
             case MovementType.Gasto:
-                movement = _financeService.RegisterExpense(dto.Amount, dto.Description);
+                movement = await _financeService.RegisterExpenseAsync(dto.Amount, dto.Description);
                 break;
             default:
                 return BadRequest(new MessageDto("Solo se pueden registrar manualmente movimientos de tipo Ingreso o Gasto."));

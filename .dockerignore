@@ -1,0 +1,23 @@
+# Control de versiones y editor
+.git
+.gitignore
+.vs
+.vscode
+
+# Resultados de compilación (se generan dentro de la imagen)
+**/bin
+**/obj
+
+# Secretos y datos locales: NUNCA deben entrar a la imagen
+**/.env
+**/*.env
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# No necesarios para construir la API
+Docker
+docs
+database
+README.md
+TiendaBarrio.Web

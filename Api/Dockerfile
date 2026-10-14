@@ -1,20 +1,26 @@
+# ---------- Etapa 1: compilar y publicar ----------
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copiar archivos de proyecto y restaurar dependencias
+# Primero solo los .csproj: Docker cachea el restore si no cambian
 COPY ["Api/Api.csproj", "Api/"]
 COPY ["TiendaBarrio/Tienda-Don-Julio.csproj", "TiendaBarrio/"]
 RUN dotnet restore "Api/Api.csproj"
 
-# Copiar el resto del código y compilar
-COPY . .
-WORKDIR "/src/Api"
-RUN dotnet build "Api.csproj" -c Release -o /app/build
+# Luego el código (el .dockerignore deja fuera bin, obj, .env y *.db)
+COPY Api/ Api/
+COPY TiendaBarrio/ TiendaBarrio/
+RUN dotnet publish "Api/Api.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
-FROM build AS publish
-RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
+# ---------- Etapa 2: imagen final liviana ----------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_HTTP_PORTS=8080
+EXPOSE 8080
+
+# Usuario sin privilegios (viene incluido en las imágenes de .NET 8+)
+USER $APP_UID
+
 ENTRYPOINT ["dotnet", "Api.dll"]
