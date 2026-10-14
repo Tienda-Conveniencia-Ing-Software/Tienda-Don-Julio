@@ -6,8 +6,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\TiendaBarrio\Tienda-Don-Julio.csproj" />
-	</ItemGroup>
+	<!-- Ya NO referencia al proyecto de consola: la web solo habla con la API por HTTP -->
 
 </Project>

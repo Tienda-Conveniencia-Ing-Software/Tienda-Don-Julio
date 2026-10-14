@@ -1,0 +1,49 @@
+namespace TiendaBarrio.Web.Models;
+
+// Copias locales de lo que devuelve la API (DTOs). Así la web no depende del Core.
+
+public class LoginResponse
+{
+    public string Token { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+}
+
+public class ProductItem
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public double Price { get; set; }
+    public double PurchasePrice { get; set; }
+    public int Stock { get; set; }
+}
+
+public class BalanceInfo
+{
+    public double TotalIncome { get; set; }
+    public double TotalExpense { get; set; }
+    public double CurrentBalance { get; set; }
+}
+
+public class MovementItem
+{
+    public int Id { get; set; }
+    public string Type { get; set; } = string.Empty;   // "Ingreso", "Gasto" o "CompraInventario"
+    public double Amount { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public DateTime Date { get; set; }
+}
+
+/// <summary>Resultado de una llamada a la API: o trae datos, o trae un mensaje de error legible.</summary>
+public class ApiResult<T>
+{
+    public bool Ok { get; init; }
+    public T? Data { get; init; }
+    public string? Error { get; init; }
+
+    public static ApiResult<T> Success(T? data) => new() { Ok = true, Data = data };
+    public static ApiResult<T> Fail(string error) => new() { Ok = false, Error = error };
+}

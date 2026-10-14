@@ -1,7 +1,15 @@
-﻿@page "/"
+@page "/"
+@inject AuthSession Session
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tienda Don Julio</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Tienda Don Julio</h1>
 
-Welcome to your new app.
+@if (Session.IsLoggedIn)
+{
+    <p class="lead">Hola, <strong>@Session.Nombre</strong>. Usa el menú de la izquierda para continuar.</p>
+}
+else
+{
+    <p class="lead">Consulta el catálogo de productos o <a href="login">inicia sesión</a> para gestionar el inventario.</p>
+}

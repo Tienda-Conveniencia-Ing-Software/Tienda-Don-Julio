@@ -1,83 +1,126 @@
 @page "/finanzas"
-@using TiendaBarrio.Core.Models
-@inject HttpClient Http
+@inject ApiClient Api
+@inject AuthSession Session
 
-<PageTitle>Gestión Financiera - TiendaBarrio</PageTitle>
+<PageTitle>Finanzas - Tienda Don Julio</PageTitle>
 
-<h3>Flujo de Caja y Finanzas</h3>
+<h3>Flujo de caja y finanzas</h3>
 
-@if (!string.IsNullOrEmpty(errorMessage))
+@if (!Session.IsWorker)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @errorMessage
-        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+    <div class="alert alert-warning">
+        Esta sección es solo para personal con rol <strong>Trabajador</strong>.
+        <a href="login">Inicia sesión</a> con una cuenta de trabajador.
     </div>
 }
+else
+{
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
 
-<div class="card mb-4 border-primary">
-    <div class="card-body text-center">
-        <h5 class="card-title text-muted">Saldo Actual en Caja</h5>
-        <h2 class="display-6 fw-bold text-success">$@balance.ToString("N2")</h2>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Ingresos totales</h6>
+                    <h4 class="text-success">$@balance.TotalIncome.ToString("N2")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Gastos totales</h6>
+                    <h4 class="text-danger">$@balance.TotalExpense.ToString("N2")</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Saldo actual en caja</h6>
+                    <h4 class="fw-bold">$@balance.CurrentBalance.ToString("N2")</h4>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-<table class="table table-striped table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Tipo</th>
-            <th>Monto</th>
-            <th>Descripción</th>
-            <th>Fecha</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (movements == null || !movements.Any())
-        {
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
             <tr>
-                <td colspan="5" class="text-center">No hay movimientos registrados en la caja.</td>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Fecha</th>
             </tr>
-        }
-        else
-        {
-            @foreach (var mov in movements)
+        </thead>
+        <tbody>
+            @if (isLoading)
             {
-                <tr>
-                    <td>@mov.Id</td>
-                    <td>
-                        <span class="badge @(mov.Type == MovementType.Ingreso ? "bg-success" : "bg-danger")">
-                            @mov.Type
-                        </span>
-                    </td>
-                    <td>$@mov.Amount.ToString("N2")</td>
-                    <td>@mov.Description</td>
-                    <td>@mov.Date.ToString("g")</td>
-                </tr>
+                <tr><td colspan="5" class="text-center">Cargando...</td></tr>
             }
-        }
-    </tbody>
-</table>
+            else if (movements.Count == 0)
+            {
+                <tr><td colspan="5" class="text-center">No hay movimientos registrados en la caja.</td></tr>
+            }
+            else
+            {
+                @foreach (var mov in movements)
+                {
+                    <tr>
+                        <td>@mov.Id</td>
+                        <td>
+                            <span class="badge @BadgeClass(mov.Type)">@mov.Type</span>
+                        </td>
+                        <td>$@mov.Amount.ToString("N2")</td>
+                        <td>@mov.Description</td>
+                        <td>@mov.Date.ToString("g")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
 
 @code {
-    private double balance;
-    private List<CashMovement> movements = new();
+    private BalanceInfo balance = new();
+    private List<MovementItem> movements = new();
     private string? errorMessage;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarFinanzas();
+        if (!Session.IsWorker)
+        {
+            isLoading = false;
+            return;
+        }
+
+        var balanceResult = await Api.GetBalanceAsync();
+        if (balanceResult.Ok)
+            balance = balanceResult.Data ?? new();
+        else
+            errorMessage = balanceResult.Error;
+
+        var movementsResult = await Api.GetMovementsAsync();
+        if (movementsResult.Ok)
+            movements = movementsResult.Data ?? new();
+        else
+            errorMessage ??= movementsResult.Error;
+
+        isLoading = false;
     }
 
-    private async Task CargarFinanzas()
+    private static string BadgeClass(string type) => type switch
     {
-        try
-        {
-            balance = await Http.GetFromJsonAsync<double>("api/finance/balance");
-            movements = await Http.GetFromJsonAsync<List<CashMovement>>("api/finance/movements") ?? new();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Error al cargar los datos financieros desde la API: " + ex.Message;
-        }
-    }
+        "Ingreso" => "bg-success",
+        "Gasto" => "bg-danger",
+        _ => "bg-warning text-dark"
+    };
 }

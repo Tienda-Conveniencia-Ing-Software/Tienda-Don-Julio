@@ -1,48 +1,31 @@
 using TiendaBarrio.Web.Components;
-using Microsoft.EntityFrameworkCore;
-using TiendaBarrio.Persistence.Data;
-using TiendaBarrio.Persistence;
-using TiendaBarrio.Persistence.Interfaces;
-using TiendaBarrio.Core.Services;
+using TiendaBarrio.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================================
-// CONFIGURACIÓN DE SERVICIOS - PERSONA 3
+// La web NO toca la base de datos ni los Services del Core:
+// todo pasa por la API REST (HttpClient). URL configurable en Api:BaseUrl
+// (en appsettings.json, o con la variable de entorno Api__BaseUrl).
 // ============================================================================
 
-// 0. DbContext (los repositorios ya no lo crean con new)
-builder.Services.AddDbContext<AppDbContext>();
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "http://localhost:5222/";
+if (!apiBaseUrl.EndsWith('/')) apiBaseUrl += "/";
 
-// 1. Repositorios
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<ICashRepository, CashRepository>(); // <-- Agregado para resolver FinanceService
+// En Blazor Server "Scoped" = una instancia por usuario conectado (circuito).
+// Así cada usuario tiene su propia sesión y su propio token.
+builder.Services.AddScoped<AuthSession>();
+builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+builder.Services.AddScoped<ApiClient>();
 
-// 2. Servicios de Negocio (Core)
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<FinanceService>();                 // <-- Agregado para resolver InventoryService
-builder.Services.AddScoped<InventoryService>();
-
-// 3. Cliente HTTP listo para cuando Persona 1 levante la API en Docker
-// TODO: Persona 1 (API) - Cuando los Controllers estén listos, cambiar las inyecciones
-// directas por las llamadas HTTP correspondientes usando este HttpClient.
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("http://localhost:5222/")
-});
-
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
