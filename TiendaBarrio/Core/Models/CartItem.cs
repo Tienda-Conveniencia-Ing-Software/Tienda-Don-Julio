@@ -2,27 +2,27 @@ namespace TiendaBarrio.Core.Models;
 
 public class CartItem
 {
-    public int Id { get; set; }                        // ← PK para EF Core
-    public int ProductId { get; set; }                 // ← FK para EF Core
-    public Product Product { get; set; }               // ← set agregado
-    public int Quantity { get; set; }                  // ← set público
-    public int? OrderId { get; set; }                  // ← FK opcional para Order
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public Product? Product { get; set; }
+    public int Quantity { get; set; }
+    public double UnitPrice { get; set; }
 
-    // Constructor vacío (para EF Core)
-    public CartItem()
-    {
-    }
+    public double Subtotal => Quantity * (UnitPrice > 0 ? UnitPrice : (Product?.Price ?? 0));
 
-    // Constructor con parámetros
+    // Constructor sin parámetros para EF Core
+    public CartItem() { }
+
+    // Constructor de 2 argumentos para compatibilidad con CartService
     public CartItem(Product product, int quantity)
     {
         Product = product;
-        ProductId = product.ID;
+        ProductId = product?.ID ?? 0;
         Quantity = quantity;
+        UnitPrice = product?.Price ?? 0;
     }
 
-    public double Subtotal => Product != null ? Product.Price * Quantity : 0;
-
+    // Método requerido por CartService.cs
     public void SetQuantity(int quantity)
     {
         if (quantity > 0)
