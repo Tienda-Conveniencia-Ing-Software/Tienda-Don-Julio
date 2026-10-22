@@ -1,65 +1,144 @@
-namespace TiendaBarrio.Core.Services;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using TiendaBarrio.Core.DTOs;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence.Interfaces;
+using TiendaBarrio.Persistence.Data;
+
+namespace TiendaBarrio.Core.Services;
 
 public class OrderService
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly FinanceService _financeService;
+    private readonly AppDbContext _context;
 
-    public OrderService(
-        IOrderRepository orderRepository,
-        IProductRepository productRepository,
-        FinanceService financeService)
+    public OrderService(AppDbContext context)
     {
-        _orderRepository = orderRepository;
-        _productRepository = productRepository;
-        _financeService = financeService;
+        _context = context;
     }
 
-    public async Task<Order?> ConfirmOrderAsync(CartService cart, List<Product> products)
+    /// <summary>
+    /// Crea un nuevo pedido en estado Pendiente sin descontar stock ni tocar finanzas.
+    /// </summary>
+    public async Task<OrderResponseDto> CreateOrderAsync(CreateOrderDto dto)
     {
-        if (cart.Items.Count == 0)
+        if (dto.Items == null || !dto.Items.Any())
         {
-            return null;
+            throw new ArgumentException("El pedido debe contener al menos un producto.");
         }
 
-        var order = new Order(0, new List<CartItem>(cart.Items));
+        var cliente = await _context.Clientes.FindAsync(dto.ClienteId)
+            ?? throw new KeyNotFoundException($"El cliente con ID {dto.ClienteId} no existe.");
 
-        foreach (var item in order.Items)
+        var cartItems = new List<CartItem>();
+
+        foreach (var item in dto.Items)
         {
-            item.Product.ReduceStock(item.Quantity);
+            var product = await _context.Productos.FindAsync(item.ProductId)
+                ?? throw new KeyNotFoundException($"Producto con ID {item.ProductId} no encontrado.");
+
+            if (product.Stock < item.Quantity)
+            {
+                throw new InvalidOperationException($"Stock insuficiente para '{product.Name}'. Disponible: {product.Stock}, Solicitado: {item.Quantity}.");
+            }
+
+            cartItems.Add(new CartItem
+            {
+                ProductId = product.ID,
+                Product = product,
+                Quantity = item.Quantity,
+                UnitPrice = product.Price
+            });
         }
 
-        // ✅ Actualizar stock de los productos
-        foreach (var item in order.Items)
+        var order = new Order
         {
-            await _productRepository.UpdateAsync(item.Product);
-        }
-        await _productRepository.SaveChangesAsync();
+            ClienteId = cliente.Id,
+            Items = cartItems,
+            Total = cartItems.Sum(i => i.Quantity * i.UnitPrice),
+            Status = OrderStatus.Pendiente,
+            CreatedAt = DateTime.UtcNow
+        };
 
-        order.AdvanceStatus(OrderStatus.Confirmado);
+        _context.Pedidos.Add(order);
+        await _context.SaveChangesAsync();
 
-        // ✅ Guardar el pedido
-        await _orderRepository.AddAsync(order);
-        await _orderRepository.SaveChangesAsync();
-
-        // ✅ Registrar el ingreso
-        await _financeService.RegisterIncomeAsync(order.Total, $"Venta pedido #{order.Id}");
-
-        cart.Clear();
-
-        return order;
+        return MapToResponseDto(order, cliente.Nombre);
     }
 
-    public async Task<List<Order>> GetHistoryAsync()
+    /// <summary>
+    /// Obtiene los pedidos creados por un cliente específico (para HU-10 Mis Pedidos).
+    /// </summary>
+    public async Task<List<OrderResponseDto>> GetOrdersByClienteAsync(int clienteId)
     {
-        return await _orderRepository.GetAllAsync();
+        var cliente = await _context.Clientes.FindAsync(clienteId);
+        string nombreCliente = cliente?.Nombre ?? "Cliente";
+
+        var orders = await _context.Pedidos
+            .Include(o => o.Items)
+            .ThenInclude(i => i.Product)
+            .Where(o => o.ClienteId == clienteId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        return orders.Select(o => MapToResponseDto(o, nombreCliente)).ToList();
+    }
+
+    /// <summary>
+    /// Obtiene todos los pedidos registrados en el sistema (para el Panel del Trabajador - HU-06).
+    /// </summary>
+    public async Task<List<OrderResponseDto>> GetAllOrdersAsync()
+    {
+        var orders = await _context.Pedidos
+            .Include(o => o.Items)
+            .ThenInclude(i => i.Product)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        var clientesDict = await _context.Clientes
+            .ToDictionaryAsync(c => c.Id, c => c.Nombre);
+
+        return orders.Select(o => MapToResponseDto(o, clientesDict.GetValueOrDefault(o.ClienteId, "Desconocido"))).ToList();
+    }
+
+    /// <summary>
+    /// Obtiene el conteo de pedidos pendientes (para la alerta de notificaciones en Blazor/API).
+    /// </summary>
+    public async Task<int> GetPendingOrdersCountAsync()
+    {
+        return await _context.Pedidos.CountAsync(o => o.Status == OrderStatus.Pendiente);
+    }
+
+    /// <summary>
+    /// Actualiza el estado de un pedido directamente.
+    /// </summary>
+    public async Task UpdateOrderStatusAsync(int orderId, OrderStatus newStatus)
+    {
+        var order = await _context.Pedidos.FindAsync(orderId)
+            ?? throw new KeyNotFoundException($"Pedido con ID {orderId} no encontrado.");
+
+        order.AdvanceStatus(newStatus);
+        await _context.SaveChangesAsync();
+    }
+
+    private static OrderResponseDto MapToResponseDto(Order order, string clienteNombre)
+    {
+        return new OrderResponseDto
+        {
+            Id = order.Id,
+            ClienteId = order.ClienteId,
+            ClienteNombre = clienteNombre,
+            Total = order.Total,
+            Status = order.Status.ToString(),
+            CreatedAt = order.CreatedAt,
+            Items = order.Items.Select(i => new OrderItemResponseDto
+            {
+                ProductId = i.ProductId,
+                ProductName = i.Product?.Name ?? string.Empty,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice
+            }).ToList()
+        };
     }
 }

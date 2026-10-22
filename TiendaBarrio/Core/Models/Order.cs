@@ -2,13 +2,13 @@ namespace TiendaBarrio.Core.Models;
 
 public class Order
 {
-    public int Id { get; set; }                       // ← set agregado
-    public List<CartItem> Items { get; set; }         // ← set agregado
-    public double Total { get; set; }                 // ← set agregado
-    public OrderStatus Status { get; set; }           // ← set agregado
-    public DateTime CreatedAt { get; set; }           // ← set agregado
+    public int Id { get; set; }
+    public int ClienteId { get; set; } // ← Propiedad añadida
+    public List<CartItem> Items { get; set; }
+    public double Total { get; set; }
+    public OrderStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    // Constructor vacío (para EF Core)
     public Order()
     {
         Items = new List<CartItem>();
@@ -16,10 +16,10 @@ public class Order
         Status = OrderStatus.Pendiente;
     }
 
-    // Constructor con parámetros
-    public Order(int id, List<CartItem> items)
+    public Order(int id, List<CartItem> items, int clienteId = 0)
     {
         Id = id;
+        ClienteId = clienteId;
         Items = items;
         Total = items.Sum(i => i.Subtotal);
         Status = OrderStatus.Pendiente;

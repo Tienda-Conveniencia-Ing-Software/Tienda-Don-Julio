@@ -1,7 +1,7 @@
 public class Product
 {
     public int ID { get; set; }                        // ← set agregado
-    public string Name { get; set; }                   // ← set agregado
+    public string Name { get; set; } = string.Empty;
     public double Price { get; set; }                  // ← set agregado
     public double PurchasePrice { get; set; }          // ← set agregado
     public int Stock { get; set; }                     // ← set agregado

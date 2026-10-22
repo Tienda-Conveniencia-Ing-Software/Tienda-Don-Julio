@@ -3,11 +3,11 @@ namespace TiendaBarrio.Core.Models;
 public class Usuario
 {
     public int Id { get; set; }
-    public string NombreUsuario { get; set; }
-    public string Email { get; set; }
-    public string ContraseñaHash { get; set; }
-    public string Rol { get; set; }   // "Admin" o "Vendedor"
-    public DateTime FechaCreacion { get; set; }
+    public string NombreUsuario { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string ContraseñaHash { get; set; } = string.Empty;
+    public string Rol { get; set; } = string.Empty;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     // Constructor vacío (para EF Core)
     public Usuario()

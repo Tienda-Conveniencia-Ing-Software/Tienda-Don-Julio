@@ -1,88 +1,168 @@
-namespace TiendaBarrio.Core.Services;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using TiendaBarrio.Core.DTOs;
 using TiendaBarrio.Core.Models;
-using TiendaBarrio.Persistence.Interfaces;
+using TiendaBarrio.Persistence.Data;
+
+namespace TiendaBarrio.Core.Services;
 
 public class SaleService
 {
-    private readonly ISaleRepository _saleRepository;
-    private readonly IProductRepository _productRepository;
-    private readonly FinanceService _financeService;
+    private readonly AppDbContext _context;
 
-    public SaleService(
-        ISaleRepository saleRepository,
-        IProductRepository productRepository,
-        FinanceService financeService)
+    public SaleService(AppDbContext context)
     {
-        _saleRepository = saleRepository ?? throw new ArgumentNullException(nameof(saleRepository));
-        _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
-        _financeService = financeService ?? throw new ArgumentNullException(nameof(financeService));
+        _context = context;
     }
 
-    public async Task<Sale?> ProcessSaleAsync(CartService cart, List<Product> products)
+    /// <summary>
+    /// Confirma un pedido de forma atómica (Transacción SQL): descuenta stock, crea la Venta y registra el Movimiento de Caja.
+    /// </summary>
+    public async Task<Sale> ConfirmOrderAndCreateSaleAsync(int orderId, int trabajadorId)
     {
-        if (cart == null || cart.Items.Count == 0)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var order = await _context.Pedidos
+                .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == orderId)
+                ?? throw new KeyNotFoundException($"Pedido con ID {orderId} no encontrado.");
+
+            if (order.Status != OrderStatus.Pendiente)
+            {
+                throw new InvalidOperationException($"El pedido #{orderId} ya no se encuentra en estado Pendiente.");
+            }
+
+            var trabajador = await _context.Clientes.FindAsync(trabajadorId);
+            if (trabajador == null || !trabajador.EsTrabajador())
+            {
+                throw new UnauthorizedAccessException("El usuario especificado no tiene rol de Trabajador.");
+            }
+
+            var details = new List<SaleDetail>();
+
+            foreach (var item in order.Items)
+            {
+                var product = await _context.Productos.FindAsync(item.ProductId)
+                    ?? throw new KeyNotFoundException($"Producto con ID {item.ProductId} no encontrado.");
+
+                if (product.Stock < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Stock insuficiente para el producto '{product.Name}'. Stock disponible: {product.Stock}, solicitado: {item.Quantity}.");
+                }
+
+                // 1. Descuento de stock en entidad
+                product.ReduceStock(item.Quantity);
+
+                // 2. Detalle de venta con costos históricos
+                var saleDetail = new SaleDetail(
+                    product.ID,
+                    product.Name,
+                    item.Quantity,
+                    product.Price,
+                    product.PurchasePrice
+                );
+                details.Add(saleDetail);
+            }
+
+            // 3. Creación de la Entidad Venta y cálculo de ganancias
+            var sale = new Sale
+            {
+                Date = DateTime.Now,
+                Details = details,
+                ClienteId = order.ClienteId
+            };
+            sale.CalculateTotals();
+
+            _context.Ventas.Add(sale);
+
+            // 4. Registro en Movimientos de Caja
+            var cashMovement = new CashMovement
+            {
+                Type = MovementType.Ingreso,
+                Amount = sale.Total,
+                Description = $"Ingreso por Venta del Pedido #{order.Id}",
+                Date = DateTime.Now
+            };
+            _context.Movimientos.Add(cashMovement);
+
+            // 5. Cambio de Estado del Pedido
+            order.AdvanceStatus(OrderStatus.Completado);
+
+            // Persistir todos los cambios juntos en la BD
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return sale;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+    // Compatibilidad para la interfaz de consola anterior
+    public async Task<Sale> ProcessSaleAsync(int orderId, int trabajadorId)
+    {
+        return await ConfirmOrderAndCreateSaleAsync(orderId, trabajadorId);
+    }
+
+    /// <summary>
+    /// Reporte de Productos Más Vendidos para HU-14.
+    /// </summary>
+    public async Task<List<TopProductDto>> GetTopSellingProductsAsync(int count = 5)
+    {
+        var topProducts = await _context.DetalleVentas
+            .GroupBy(d => new { d.ProductId, d.ProductName })
+            .Select(g => new TopProductDto
+            {
+                ProductId = g.Key.ProductId,
+                ProductName = g.Key.ProductName,
+                TotalQuantitySold = g.Sum(d => d.Quantity),
+                TotalRevenue = g.Sum(d => d.Quantity * d.UnitPrice)
+            })
+            .OrderByDescending(p => p.TotalQuantitySold)
+            .Take(count)
+            .ToListAsync();
+
+        return topProducts;
+    }
+    //// <summary>
+    /// Sobrecarga para mantener compatibilidad con la interfaz de consola legada (SalesMenu.cs).
+    /// </summary>
+    public async Task<Sale?> ProcessSaleAsync(CartService cartService, List<Product> products)
+    {
+        if (cartService == null || !cartService.Items.Any())
         {
             return null;
         }
 
-        // Validar stock de todos los productos ANTES de procesar
-        foreach (var item in cart.Items)
+        var details = new List<SaleDetail>();
+        foreach (var item in cartService.Items)
         {
-            var product = products.FirstOrDefault(p => p.ID == item.Product.ID);
-
-            if (product == null)
+            var p = products.FirstOrDefault(pr => pr.ID == item.ProductId || (item.Product != null && pr.ID == item.Product.ID));
+            if (p != null)
             {
-                return null;
-            }
-
-            if (product.Stock < item.Quantity)
-            {
-                return null;
+                p.ReduceStock(item.Quantity);
+                details.Add(new SaleDetail(p.ID, p.Name, item.Quantity, p.Price, p.PurchasePrice));
             }
         }
 
-        var sale = new Sale();
-
-        foreach (var item in cart.Items)
+        var sale = new Sale
         {
-            var product = products.First(p => p.ID == item.Product.ID);
-
-            product.ReduceStock(item.Quantity);
-
-            var detail = new SaleDetail(
-                product.ID,
-                product.Name,
-                item.Quantity,
-                product.Price,
-                product.PurchasePrice
-            );
-
-            sale.Details.Add(detail);
-        }
-
+            Date = DateTime.Now,
+            Details = details
+        };
         sale.CalculateTotals();
 
-        // Guardar la venta con EF Core (el Id lo asigna la BD)
-        await _saleRepository.AddAsync(sale);
-        await _saleRepository.SaveChangesAsync();
-
-        // Actualizar el stock de los productos
-        foreach (var item in cart.Items)
-        {
-            var product = products.First(p => p.ID == item.Product.ID);
-            await _productRepository.UpdateAsync(product);
-        }
-        await _productRepository.SaveChangesAsync();
-
-        // Registrar el ingreso en finanzas
-        await _financeService.RegisterIncomeAsync(sale.Total, $"Venta #{sale.Id}");
-
-        cart.Items.Clear();
+        _context.Ventas.Add(sale);
+        await _context.SaveChangesAsync();
+        cartService.Clear();
 
         return sale;
     }
