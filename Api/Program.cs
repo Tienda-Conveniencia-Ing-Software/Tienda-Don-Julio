@@ -10,6 +10,10 @@ using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Services;
+using DotNetEnv;
+
+// Cargar variables de entorno desde .env
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
