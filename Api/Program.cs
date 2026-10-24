@@ -10,6 +10,10 @@ using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Services;
+using DotNetEnv;
+
+// Cargar variables de entorno desde .env
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +105,12 @@ var app = builder.Build();
 // Errores no controlados -> 500 con formato ProblemDetails
 app.UseExceptionHandler();
 
+// Aplicar migraciones automáticamente al iniciar
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    dbContext.Database.Migrate();
+//}
 
 if (app.Environment.IsDevelopment())
 {
