@@ -75,7 +75,8 @@ public class SaleService
             {
                 Date = DateTime.Now,
                 Details = details,
-                ClienteId = order.ClienteId
+                ClienteId = order.ClienteId,
+                UsuarioId = trabajadorId
             };
             sale.CalculateTotals();
 
@@ -87,7 +88,8 @@ public class SaleService
                 Type = MovementType.Ingreso,
                 Amount = sale.Total,
                 Description = $"Ingreso por Venta del Pedido #{order.Id}",
-                Date = DateTime.Now
+                Date = DateTime.Now,
+                UsuarioId = trabajadorId    
             };
             _context.Movimientos.Add(cashMovement);
 

@@ -3,7 +3,8 @@ namespace TiendaBarrio.Core.Models;
 public class Sale
 {
     public int Id { get; set; }
-    public int ClienteId { get; set; } // ← Propiedad añadida
+    public int? ClienteId { get; set; }   // comprador (null = venta de mostrador)
+    public int? UsuarioId { get; set; }   // trabajador que procesó la venta
     public DateTime Date { get; set; }
     public List<SaleDetail> Details { get; set; }
     public double Total { get; set; }

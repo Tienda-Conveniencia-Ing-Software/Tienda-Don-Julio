@@ -3,6 +3,12 @@ namespace TiendaBarrio.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 using TiendaBarrio.Core.Models;
 
+/// <summary>
+/// EF Core solo MAPEA las entidades a las tablas creadas por los scripts
+/// database/init/01-schema.sql y 02-seed.sql. Ya no crea tablas, no usa
+/// migraciones ni inserta datos (HasData): todo eso vive en el script SQL.
+/// Si cambias una tabla o columna, cambia el script Y el mapeo de aquí.
+/// </summary>
 public class AppDbContext : DbContext
 {
     // Constructor por defecto (para instanciación manual)
@@ -14,7 +20,6 @@ public class AppDbContext : DbContext
     // DbSets (cada uno representa una tabla)
     public DbSet<Product> Productos { get; set; }
     public DbSet<Cliente> Clientes { get; set; }
-    public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Sale> Ventas { get; set; }
     public DbSet<SaleDetail> DetalleVentas { get; set; }
     public DbSet<Order> Pedidos { get; set; }
@@ -31,7 +36,7 @@ public class AppDbContext : DbContext
             var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
             var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
             var password = Environment.GetEnvironmentVariable("DB_PASSWORD")
-    ?? throw new InvalidOperationException("La variable de entorno DB_PASSWORD no está configurada.");
+                ?? throw new InvalidOperationException("La variable de entorno DB_PASSWORD no está configurada.");
 
             var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
 
@@ -40,138 +45,115 @@ public class AppDbContext : DbContext
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    base.OnModelCreating(modelBuilder);
-
-    // Mapeo: Productos
-    modelBuilder.Entity<Product>(entity =>
     {
-        entity.ToTable("Productos");
-        entity.HasKey(e => e.ID);
-        entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-        entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.PurchasePrice).HasColumnType("decimal(10,2)");
-    });
+        base.OnModelCreating(modelBuilder);
 
-    // Mapeo: Clientes
-    modelBuilder.Entity<Cliente>(entity =>
-    {
-        entity.ToTable("Clientes");
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
-        entity.Property(e => e.Cedula).IsRequired().HasMaxLength(20);
-        entity.Property(e => e.Telefono).HasMaxLength(20);
-        entity.Property(e => e.Email).HasMaxLength(100);
-    });
-
-    // Mapeo: Usuarios
-    modelBuilder.Entity<Usuario>(entity =>
-    {
-        entity.ToTable("Usuarios");
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.NombreUsuario).IsRequired().HasMaxLength(50);
-        entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
-        entity.Property(e => e.ContraseñaHash).IsRequired().HasMaxLength(255);
-        entity.Property(e => e.Rol).IsRequired().HasMaxLength(20);
-        entity.Property(e => e.FechaCreacion).HasColumnType("timestamp without time zone");
-    });
-
-    // Mapeo: Ventas
-    modelBuilder.Entity<Sale>(entity =>
-    {
-        entity.ToTable("Ventas");
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Total).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.TotalCost).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.Profit).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.Date).HasColumnType("timestamp without time zone");
-    });
-
-    // Mapeo: Detalle de Ventas
-    modelBuilder.Entity<SaleDetail>(entity =>
-    {
-        entity.ToTable("Detalle_Venta");
-        entity.HasKey(e => new { e.ProductId, e.ProductName });
-        entity.Property(e => e.UnitPrice).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.UnitCost).HasColumnType("decimal(10,2)");
-    });
-
-    // Mapeo: Pedidos
-    modelBuilder.Entity<Order>(entity =>
-    {
-        entity.ToTable("Pedidos");
-        entity.HasKey(e => e.Id);
-        entity.HasMany(e => e.Items)
-              .WithOne()
-              .HasForeignKey("OrderId")
-              .OnDelete(DeleteBehavior.Cascade);
-    });
-
-    // Mapeo: Carrito de Compras
-    modelBuilder.Entity<CartItem>(entity =>
-    {
-        entity.ToTable("Carrito_Items");
-        entity.HasKey(e => e.Id);
-        entity.HasOne(e => e.Product)
-              .WithMany()
-              .HasForeignKey(e => e.ProductId)
-              .OnDelete(DeleteBehavior.Restrict);
-    });
-
-    // Mapeo: Movimientos (CashMovement)
-    modelBuilder.Entity<CashMovement>(entity =>
-    {
-        entity.ToTable("Movimientos");
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Type).IsRequired();
-        entity.Property(e => e.Amount).HasColumnType("decimal(10,2)");
-        entity.Property(e => e.Description).HasMaxLength(200);
-        entity.Property(e => e.Date).IsRequired();
-        entity.Property(e => e.Date).IsRequired().HasColumnType("timestamp without time zone");
-    });
-
-    // Seed: Usuarios del sistema
-    modelBuilder.Entity<Usuario>().HasData(
-        new Usuario
+        // ---------------- cliente (cuentas: clientes y trabajadores) ----------------
+        modelBuilder.Entity<Cliente>(entity =>
         {
-            Id = 1,
-            NombreUsuario = "admin",
-            Email = "admin@tienda.com",
-            ContraseñaHash = "admin123",
-            Rol = "Admin",
-            FechaCreacion = new DateTime(2026, 1, 1)
-        },
-        new Usuario
+            entity.ToTable("cliente");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_cliente");
+            entity.Property(e => e.Nombre).HasColumnName("nombre_cliente").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Cedula).HasColumnName("cedula").IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Telefono).HasColumnName("telefono").HasMaxLength(20);
+            entity.Property(e => e.Email).HasColumnName("email").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).HasColumnName("contrasena_hash").IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Role).HasColumnName("rol").IsRequired().HasMaxLength(20);
+        });
+
+        // ---------------- producto ----------------
+        modelBuilder.Entity<Product>(entity =>
         {
-            Id = 2,
-            NombreUsuario = "vendedor",
-            Email = "vendedor@tienda.com",
-            ContraseñaHash = "vendedor123",
-            Rol = "Vendedor",
-            FechaCreacion = new DateTime(2026, 1, 1)
-        }
-    );
+            entity.ToTable("producto");
+            entity.HasKey(e => e.ID);
+            entity.Property(e => e.ID).HasColumnName("id_producto");
+            entity.Property(e => e.Name).HasColumnName("nombre_producto").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Price).HasColumnName("precio_ventas").HasColumnType("numeric(10,2)");
+            entity.Property(e => e.PurchasePrice).HasColumnName("precio_compra").HasColumnType("numeric(10,2)");
+            entity.Property(e => e.Stock).HasColumnName("stock");
+        });
 
-    // Seed: Clientes de prueba
-    modelBuilder.Entity<Cliente>().HasData(
-        new Cliente { Id = 1, Nombre = "Administrador Don Julio", Cedula = "123456789", Telefono = "3001234567", Email = "admin@donjulio.com", PasswordHash = "$2b$11$rLjyHkVUytKYZbxncw/63eKyr2MuYGtdDzIT6gY/0JN3RK3qZPVwe", Role = "Trabajador" },
-        new Cliente { Id = 2, Nombre = "Juan Perez", Cedula = "12345678", Telefono = "3001234567", Email = "juan@test.com", PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e", Role = "Cliente" },
-        new Cliente { Id = 3, Nombre = "Maria Lopez", Cedula = "87654321", Telefono = "3007654321", Email = "maria@test.com", PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e", Role = "Cliente" },
-        new Cliente { Id = 4, Nombre = "Carlos Ruiz", Cedula = "11223344", Telefono = "3001122334", Email = "carlos@test.com", PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e", Role = "Trabajador" },
-        new Cliente { Id = 5, Nombre = "Ana Torres", Cedula = "44332211", Telefono = "3004433221", Email = "ana@test.com", PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e", Role = "Cliente" },
-        new Cliente { Id = 6, Nombre = "Pedro Gomez", Cedula = "55667788", Telefono = "3005566778", Email = "pedro@test.com", PasswordHash = "$2b$11$calnlnE2nMpqpTyMN89Ul.G3YX2fnqG1YsL3pc/KflTvxRKcmW.1e", Role = "Cliente" }
-    );
+        // ---------------- carrito_items (líneas del pedido) ----------------
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.ToTable("carrito_items");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_carrito_items");
+            entity.Property<int>("OrderId").HasColumnName("id_pedido");   // llave foránea sombra
+            entity.Property(e => e.ProductId).HasColumnName("id_producto");
+            entity.Property(e => e.Quantity).HasColumnName("cantidad");
+            entity.Property(e => e.UnitPrice).HasColumnName("precio_unitario").HasColumnType("numeric(10,2)");
 
-    // Seed: Catálogo base de productos
-    modelBuilder.Entity<Product>().HasData(
-        new Product { ID = 1, Name = "Arroz", Price = 2500, PurchasePrice = 1800, Stock = 100 },
-        new Product { ID = 2, Name = "Leche", Price = 3500, PurchasePrice = 2800, Stock = 50 },
-        new Product { ID = 3, Name = "Pan", Price = 2000, PurchasePrice = 1500, Stock = 80 },
-        new Product { ID = 4, Name = "Huevos", Price = 500, PurchasePrice = 350, Stock = 200 },
-        new Product { ID = 5, Name = "Café", Price = 8000, PurchasePrice = 6000, Stock = 30 },
-        new Product { ID = 6, Name = "Azúcar", Price = 3000, PurchasePrice = 2200, Stock = 60 },
-        new Product { ID = 7, Name = "Sal", Price = 1500, PurchasePrice = 1000, Stock = 100 },
-        new Product { ID = 8, Name = "Aceite", Price = 9000, PurchasePrice = 7000, Stock = 40 }
-    );
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---------------- pedido ----------------
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.ToTable("pedido");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_pedido");
+            entity.Property(e => e.ClienteId).HasColumnName("id_cliente");
+            entity.Property(e => e.CreatedAt).HasColumnName("fecha").HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Status).HasColumnName("estado").HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Total).HasColumnName("total").HasColumnType("numeric(10,2)");
+
+            // CartItem no tiene propiedad OrderId en C#: la llave foránea es una propiedad "sombra".
+            entity.HasMany(e => e.Items)
+                  .WithOne()
+                  .HasForeignKey("OrderId")
+                  .IsRequired()
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---------------- venta ----------------
+        modelBuilder.Entity<Sale>(entity =>
+        {
+            entity.ToTable("venta");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_venta");
+            entity.Property(e => e.ClienteId).HasColumnName("id_cliente");   // comprador (null = mostrador)
+            entity.Property(e => e.UsuarioId).HasColumnName("id_usuario");   // trabajador que procesó la venta
+            entity.Property(e => e.Date).HasColumnName("fecha_venta").HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Total).HasColumnName("total").HasColumnType("numeric(10,2)");
+            entity.Property(e => e.TotalCost).HasColumnName("total_costo").HasColumnType("numeric(10,2)");
+            entity.Property(e => e.Profit).HasColumnName("ganancia").HasColumnType("numeric(10,2)");
+
+            entity.HasMany(e => e.Details)
+                  .WithOne()
+                  .HasForeignKey(d => d.SaleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---------------- detalle_venta ----------------
+        modelBuilder.Entity<SaleDetail>(entity =>
+        {
+            entity.ToTable("detalle_venta");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_detalle_venta");
+            entity.Property(e => e.SaleId).HasColumnName("id_venta");
+            entity.Property(e => e.ProductId).HasColumnName("id_producto");
+            entity.Property(e => e.ProductName).HasColumnName("nombre_producto").IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Quantity).HasColumnName("cantidad");
+            entity.Property(e => e.UnitPrice).HasColumnName("precio_unitario").HasColumnType("numeric(10,2)");
+            entity.Property(e => e.UnitCost).HasColumnName("costo_unitario").HasColumnType("numeric(10,2)");
+        });
+
+        // ---------------- movimiento (libro de caja) ----------------
+        modelBuilder.Entity<CashMovement>(entity =>
+        {
+            entity.ToTable("movimiento");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_movimiento");
+            entity.Property(e => e.UsuarioId).HasColumnName("id_usuario");
+            entity.Property(e => e.Date).HasColumnName("fecha_movimiento").HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Type).HasColumnName("tipo").HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Description).HasColumnName("descripcion").IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Amount).HasColumnName("monto").HasColumnType("numeric(10,2)");
+        });
     }
-}   
+}

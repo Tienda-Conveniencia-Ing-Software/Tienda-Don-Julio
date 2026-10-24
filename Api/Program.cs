@@ -26,7 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 
     options.UseNpgsql(connectionString);
-    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    
 });
 
 // Registrar repositorios y servicios del Core (definido en Core/Config)
@@ -101,12 +101,6 @@ var app = builder.Build();
 // Errores no controlados -> 500 con formato ProblemDetails
 app.UseExceptionHandler();
 
-// Aplicar migraciones automáticamente al iniciar
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
 
 if (app.Environment.IsDevelopment())
 {

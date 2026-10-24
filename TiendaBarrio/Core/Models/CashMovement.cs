@@ -3,6 +3,7 @@ namespace TiendaBarrio.Core.Models;
 public class CashMovement
 {
     public int Id { get; set; }
+    public int? UsuarioId { get; set; }
     public MovementType Type { get; set; }
     public double Amount { get; set; }
     public string Description { get; set; } = string.Empty;
