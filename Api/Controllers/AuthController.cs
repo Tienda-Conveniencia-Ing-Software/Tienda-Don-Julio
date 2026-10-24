@@ -2,7 +2,6 @@ using Api.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TiendaBarrio.Core.DTOs;
 using TiendaBarrio.Core.Services;
 
 namespace Api.Controllers;
@@ -46,7 +45,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Register([FromBody] RegisterClientDto dto)
+    public async Task<IActionResult> Register([FromBody] TiendaBarrio.Core.DTOs.RegisterClientDto dto)
     {
         try
         {
