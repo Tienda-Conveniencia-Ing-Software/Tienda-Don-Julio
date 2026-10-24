@@ -75,3 +75,12 @@ public class TopProductDto
     public int TotalQuantitySold { get; set; }
     public double TotalRevenue { get; set; }
 }
+
+// ==========================================
+// DTOs para Actualizar Estado de Pedido
+// ==========================================
+
+public class UpdateOrderStatusRequest
+{
+    public string NewStatus { get; set; } = string.Empty;
+}
