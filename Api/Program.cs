@@ -21,8 +21,7 @@ if (File.Exists(envPath))
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar DbContext con la cadena de conexión de PostgreSQL
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*";
 
 // Configuración de PostgreSQL forzando las credenciales
 builder.Services.AddDbContext<TiendaBarrio.Persistence.Data.AppDbContext>(options =>
