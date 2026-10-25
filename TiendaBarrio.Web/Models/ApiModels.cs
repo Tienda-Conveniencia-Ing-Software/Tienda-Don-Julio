@@ -21,6 +21,14 @@ public class ProductItem
     public int Stock { get; set; }
 }
 
+public class TopProductItem
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public int TotalQuantitySold { get; set; }
+    public double TotalRevenue { get; set; }
+}
+
 public class BalanceInfo
 {
     public double TotalIncome { get; set; }
