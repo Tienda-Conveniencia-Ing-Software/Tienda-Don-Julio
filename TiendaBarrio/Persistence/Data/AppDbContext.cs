@@ -35,9 +35,11 @@ public class AppDbContext : DbContext
             var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
             var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
             var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-            var password = Environment.GetEnvironmentVariable("DB_PASSWORD")
-                ?? throw new InvalidOperationException("La variable de entorno DB_PASSWORD no está configurada.");
-
+            var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                password = "postgres"; // Contraseña por defecto para local
+            }
             var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
 
             optionsBuilder.UseNpgsql(connectionString);

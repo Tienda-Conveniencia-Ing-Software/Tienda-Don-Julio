@@ -1,6 +1,18 @@
-﻿<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
-    <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
-    </Found>
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+<Router AppAssembly="typeof(Program).Assembly">
+	<Found Context="routeData">
+		<RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+		<FocusOnNavigate RouteData="routeData" Selector="h1" />
+	</Found>
+	<NotFound>
+		<PageTitle>No encontrado</PageTitle>
+		<LayoutView Layout="typeof(Layout.MainLayout)">
+			<div class="alert alert-warning text-center mt-4">
+				<h4>Página no encontrada</h4>
+				<p>La ruta a la que intentas acceder no existe.</p>
+				<a href="" class="btn btn-primary mt-2">Volver al Inicio</a>
+			</div>
+		</LayoutView>
+	</NotFound>
 </Router>

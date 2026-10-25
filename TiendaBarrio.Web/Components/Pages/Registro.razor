@@ -1,0 +1,95 @@
+@page "/registro"
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Registro de Cliente - Tienda Don Julio</PageTitle>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center mb-4 text-success fw-bold">Crear Cuenta</h3>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger py-2" role="alert">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success py-2" role="alert">
+                        @successMessage
+                    </div>
+                }
+
+                <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo</label>
+                        <InputText @bind-Value="registerModel.Nombre" class="form-control" placeholder="Ej. Juan Pérez" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico</label>
+                        <InputText @bind-Value="registerModel.Email" type="email" class="form-control" placeholder="nombre@correo.com" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cédula</label>
+                        <InputText @bind-Value="registerModel.Cedula" class="form-control" placeholder="12345678" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <InputText @bind-Value="registerModel.Telefono" class="form-control" placeholder="3001234567" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <InputText @bind-Value="registerModel.Password" type="password" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-semibold" disabled="@isSubmitting">
+                        @(isSubmitting ? "Registrando..." : "Registrarse")
+                    </button>
+                </EditForm>
+
+                <div class="text-center mt-3">
+                    <small class="text-muted">¿Ya tienes cuenta? <a href="/login" class="text-success fw-semibold">Inicia Sesión</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest registerModel = new();
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isSubmitting;
+
+    private async Task HandleRegister()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+
+        var result = await Api.RegisterAsync(registerModel.Nombre, registerModel.Email, registerModel.Password, registerModel.Cedula, registerModel.Telefono);
+
+        if (result.Ok)
+        {
+            successMessage = "¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...";
+            await Task.Delay(1500);
+            Nav.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = result.Error ?? "No se pudo completar el registro.";
+        }
+
+        isSubmitting = false;
+    }
+}
