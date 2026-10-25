@@ -67,10 +67,8 @@ public class ApiClient
     public Task<ApiResult<int>> GetPendingOrdersCountAsync()
         => SendAsync<int>(HttpMethod.Get, "api/orders/pending-count");
 
-    // ✅ Corregido para enviar el estado en el cuerpo (JSON) tal como lo espera el Controller
     public Task<ApiResult<bool>> UpdateOrderStatusAsync(int orderId, string newStatus)
-        => SendAsync<bool>(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
-
+        => SendWithoutBodyAsync(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
     // ---------------- Internos ----------------
 
     private HttpRequestMessage BuildRequest(HttpMethod method, string url, object? body)
@@ -116,13 +114,14 @@ public class ApiClient
         }
     }
 
-    private async Task<ApiResult<bool>> SendWithoutBodyAsync(HttpMethod method, string url)
+    private async Task<ApiResult<bool>> SendWithoutBodyAsync(HttpMethod method, string url, object? body = null)
     {
         try
         {
-            using var request = BuildRequest(method, url, null);
+            using var request = BuildRequest(method, url, body);
             using var response = await _http.SendAsync(request);
 
+            // Si la respuesta es exitosa, devolvemos true sin intentar leer el cuerpo
             return response.IsSuccessStatusCode
                 ? ApiResult<bool>.Success(true)
                 : ApiResult<bool>.Fail(await ReadErrorAsync(response));
