@@ -21,6 +21,14 @@ public class ProductItem
     public int Stock { get; set; }
 }
 
+public class TopProductItem
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public int TotalQuantitySold { get; set; }
+    public double TotalRevenue { get; set; }
+}
+
 public class BalanceInfo
 {
     public double TotalIncome { get; set; }
@@ -48,46 +56,12 @@ public class ApiResult<T>
     public static ApiResult<T> Fail(string error) => new() { Ok = false, Error = error };
 }
 
-// --- Modelos para Carrito en Sesión ---
-public class CartLine
-{
-    public int ProductId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public double UnitPrice { get; set; }
-    public int Quantity { get; set; }
-    public int MaxStock { get; set; }
-    public double Subtotal => Quantity * UnitPrice;
-}
-
-// --- Modelos de Registro y Pedidos API ---
-public class RegisterRequest
-{
-    public string Nombre { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string Cedula { get; set; } = string.Empty;
-    public string Telefono { get; set; } = string.Empty;
-}
-
-public class CreateOrderItem
-{
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-}
-
-public class CreateOrderRequest
-{
-    public int ClienteId { get; set; }
-    public List<CreateOrderItem> Items { get; set; } = new();
-}
-
 public class OrderItemResponse
 {
     public int ProductId { get; set; }
     public string ProductName { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public double UnitPrice { get; set; }
-    public double Subtotal => Quantity * UnitPrice;
 }
 
 public class OrderResponse

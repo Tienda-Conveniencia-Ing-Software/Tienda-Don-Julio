@@ -1,0 +1,144 @@
+@page "/orders"
+@implements IDisposable
+@inject ApiClient Api
+@inject AuthSession Session
+
+<PageTitle>Panel de Pedidos - Tienda Don Julio</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3> Panel de Pedidos</h3>
+        @if (pendingCount > 0)
+        {
+            <span class="badge bg-danger fs-6"> @pendingCount pedidos pendientes</span>
+        }
+    </div>
+    <hr />
+
+    @if (!Session.IsWorker)
+    {
+        <div class="alert alert-warning">Debes iniciar sesión como Trabajador para ver esta página.</div>
+    }
+    else if (loading)
+    {
+        <p><em>Cargando pedidos...</em></p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (orders == null || !orders.Any())
+    {
+        <div class="alert alert-info">No hay pedidos registrados.</div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th># Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in orders.OrderByDescending(o => o.CreatedAt))
+                {
+                    <tr>
+                        <td>@order.Id</td>
+                        <td>@order.ClienteNombre</td>
+                        <td>@order.CreatedAt.ToString("g")</td>
+                        <td>@order.Total.ToString("C")</td>
+                        <td>
+                            <span class="badge @(order.Status == "Pendiente" ? "bg-warning text-dark" : "bg-success")">
+                                @order.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (order.Status == "Pendiente")
+                            {
+                                <button class="btn btn-sm btn-primary" @onclick="() => AdvanceStatus(order)">
+                                    ▶ Pasar a En Proceso
+                                </button>
+                            }
+                            else if (order.Status == "EnProceso")
+                            {
+                                <button class="btn btn-sm btn-success" @onclick="() => AdvanceStatus(order)">
+                                    ✔ Marcar Completado
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Completado</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<OrderResponse>? orders;
+    private int pendingCount;
+    private bool loading = true;
+    private string? errorMessage;
+    private Timer? timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsWorker) return;
+
+        await LoadOrdersAsync();
+
+        timer = new Timer(async _ =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadOrdersAsync();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        var result = await Api.GetAllOrdersAsync();
+        if (result.Ok)
+        {
+            orders = result.Data;
+            var countResult = await Api.GetPendingOrdersCountAsync();
+            if (countResult.Ok) pendingCount = countResult.Data;
+        }
+        else
+        {
+            errorMessage = result.Error;
+        }
+        loading = false;
+    }
+
+    private async Task AdvanceStatus(OrderResponse order)
+    {
+        // Usamos los nombres exactos del enum: EnProceso y Completado
+        string newStatus = order.Status == "Pendiente" ? "EnProceso" : "Completado";
+        
+        var result = await Api.UpdateOrderStatusAsync(order.Id, newStatus);
+        if (result.Ok)
+        {
+            await LoadOrdersAsync();
+        }
+        else
+        {
+            errorMessage = result.Error;
+        }
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

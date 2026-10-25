@@ -54,6 +54,21 @@ public class ApiClient
     public Task<ApiResult<List<MovementItem>>> GetMovementsAsync()
         => SendAsync<List<MovementItem>>(HttpMethod.Get, "api/finance/movements");
 
+    // ---------------- Reportes (HU-14) ----------------
+
+    public Task<ApiResult<List<TopProductItem>>> GetTopProductsAsync()
+        => SendAsync<List<TopProductItem>>(HttpMethod.Get, "api/reports/top-products");
+
+    // ---------------- Pedidos (HU-06) ----------------
+
+    public Task<ApiResult<List<OrderResponse>>> GetAllOrdersAsync()
+        => SendAsync<List<OrderResponse>>(HttpMethod.Get, "api/orders");
+
+    public Task<ApiResult<int>> GetPendingOrdersCountAsync()
+        => SendAsync<int>(HttpMethod.Get, "api/orders/pending-count");
+
+    public Task<ApiResult<bool>> UpdateOrderStatusAsync(int orderId, string newStatus)
+        => SendWithoutBodyAsync(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
     // ---------------- Internos ----------------
 
     private HttpRequestMessage BuildRequest(HttpMethod method, string url, object? body)
@@ -99,13 +114,14 @@ public class ApiClient
         }
     }
 
-    private async Task<ApiResult<bool>> SendWithoutBodyAsync(HttpMethod method, string url)
+    private async Task<ApiResult<bool>> SendWithoutBodyAsync(HttpMethod method, string url, object? body = null)
     {
         try
         {
-            using var request = BuildRequest(method, url, null);
+            using var request = BuildRequest(method, url, body);
             using var response = await _http.SendAsync(request);
 
+            // Si la respuesta es exitosa, devolvemos true sin intentar leer el cuerpo
             return response.IsSuccessStatusCode
                 ? ApiResult<bool>.Success(true)
                 : ApiResult<bool>.Fail(await ReadErrorAsync(response));

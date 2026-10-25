@@ -45,115 +45,96 @@ public class AppDbContext : DbContext
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+        // ✅ Mapeo: Cliente
+    modelBuilder.Entity<Cliente>(entity =>
     {
-        base.OnModelCreating(modelBuilder);
+        entity.ToTable("Clientes"); // ⬅️ Cambiado a plural y mayúscula
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Id).HasColumnName("Id"); // ⬅️ EF Core usará "Id" por defecto
+        entity.Property(e => e.Nombre).HasColumnName("Nombre");
+        entity.Property(e => e.Cedula).HasColumnName("Cedula");
+        entity.Property(e => e.Telefono).HasColumnName("Telefono");
+        entity.Property(e => e.Email).HasColumnName("Email");
+        entity.Property(e => e.PasswordHash).HasColumnName("PasswordHash");
+        entity.Property(e => e.Role).HasColumnName("Role");
+    });
 
-        // ---------------- cliente (cuentas: clientes y trabajadores) ----------------
-        modelBuilder.Entity<Cliente>(entity =>
-        {
-            entity.ToTable("cliente");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_cliente");
-            entity.Property(e => e.Nombre).HasColumnName("nombre_cliente").IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Cedula).HasColumnName("cedula").IsRequired().HasMaxLength(20);
-            entity.Property(e => e.Telefono).HasColumnName("telefono").HasMaxLength(20);
-            entity.Property(e => e.Email).HasColumnName("email").IsRequired().HasMaxLength(100);
-            entity.Property(e => e.PasswordHash).HasColumnName("contrasena_hash").IsRequired().HasMaxLength(255);
-            entity.Property(e => e.Role).HasColumnName("rol").IsRequired().HasMaxLength(20);
-        });
+    // ✅ Mapeo: Producto
+    modelBuilder.Entity<Product>(entity =>
+    {
+        entity.ToTable("Productos"); // ⬅️ Cambiado a plural y mayúscula
+        entity.HasKey(e => e.ID);
+        entity.Property(e => e.ID).HasColumnName("ID");
+        entity.Property(e => e.Name).HasColumnName("Name");
+        entity.Property(e => e.Price).HasColumnName("Price");
+        entity.Property(e => e.PurchasePrice).HasColumnName("PurchasePrice");
+        entity.Property(e => e.Stock).HasColumnName("Stock");
+    });
 
-        // ---------------- producto ----------------
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.ToTable("producto");
-            entity.HasKey(e => e.ID);
-            entity.Property(e => e.ID).HasColumnName("id_producto");
-            entity.Property(e => e.Name).HasColumnName("nombre_producto").IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Price).HasColumnName("precio_ventas").HasColumnType("numeric(10,2)");
-            entity.Property(e => e.PurchasePrice).HasColumnName("precio_compra").HasColumnType("numeric(10,2)");
-            entity.Property(e => e.Stock).HasColumnName("stock");
-        });
+    // ✅ Mapeo: Pedido (Order)
+    modelBuilder.Entity<Order>(entity =>
+    {
+        entity.ToTable("Pedidos"); // ⬅️ Cambiado
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Id).HasColumnName("Id");
+        entity.Property(e => e.ClienteId).HasColumnName("ClienteId");
+        entity.Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        entity.Property(e => e.Status).HasColumnName("Status");
+        entity.Property(e => e.Total).HasColumnName("Total");
+    });
 
-        // ---------------- carrito_items (líneas del pedido) ----------------
-        modelBuilder.Entity<CartItem>(entity =>
-        {
-            entity.ToTable("carrito_items");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_carrito_items");
-            entity.Property<int>("OrderId").HasColumnName("id_pedido");   // llave foránea sombra
-            entity.Property(e => e.ProductId).HasColumnName("id_producto");
-            entity.Property(e => e.Quantity).HasColumnName("cantidad");
-            entity.Property(e => e.UnitPrice).HasColumnName("precio_unitario").HasColumnType("numeric(10,2)");
+    // ✅ Mapeo: CarritoItem
+    modelBuilder.Entity<CartItem>(entity =>
+    {
+        entity.ToTable("Carrito_Items"); // ⬅️ Cambiado
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Id).HasColumnName("Id");
+        //entity.Property(e => e.OrderId).HasColumnName("OrderId");
+        entity.Property(e => e.ProductId).HasColumnName("ProductId");
+        entity.Property(e => e.Quantity).HasColumnName("Quantity");
+        entity.Property(e => e.UnitPrice).HasColumnName("UnitPrice");
+    });
 
-            entity.HasOne(e => e.Product)
-                  .WithMany()
-                  .HasForeignKey(e => e.ProductId)
-                  .OnDelete(DeleteBehavior.Restrict);
-        });
+    // ✅ Mapeo: Venta (Sale)
+    modelBuilder.Entity<Sale>(entity =>
+    {
+        entity.ToTable("Ventas"); // ⬅️ Cambiado
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Id).HasColumnName("Id");
+        entity.Property(e => e.Date).HasColumnName("Date");
+        entity.Property(e => e.Total).HasColumnName("Total");
+        entity.Property(e => e.TotalCost).HasColumnName("TotalCost");
+        entity.Property(e => e.Profit).HasColumnName("Profit");
+    });
 
-        // ---------------- pedido ----------------
-        modelBuilder.Entity<Order>(entity =>
-        {
-            entity.ToTable("pedido");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_pedido");
-            entity.Property(e => e.ClienteId).HasColumnName("id_cliente");
-            entity.Property(e => e.CreatedAt).HasColumnName("fecha").HasColumnType("timestamp without time zone");
-            entity.Property(e => e.Status).HasColumnName("estado").HasConversion<string>().HasMaxLength(20);
-            entity.Property(e => e.Total).HasColumnName("total").HasColumnType("numeric(10,2)");
+    // ✅ Mapeo: DetalleVenta (SaleDetail)
+    modelBuilder.Entity<SaleDetail>(entity =>
+    {
+        entity.ToTable("Detalle_Venta"); // ⬅️ Cambiado
+        entity.HasKey(e => e.ProductId);
+        entity.Property(e => e.ProductId).HasColumnName("ProductId");
+        entity.Property(e => e.ProductName).HasColumnName("ProductName");
+        entity.Property(e => e.Quantity).HasColumnName("Quantity");
+        entity.Property(e => e.UnitPrice).HasColumnName("UnitPrice");
+        entity.Property(e => e.UnitCost).HasColumnName("UnitCost");
+    });
 
-            // CartItem no tiene propiedad OrderId en C#: la llave foránea es una propiedad "sombra".
-            entity.HasMany(e => e.Items)
-                  .WithOne()
-                  .HasForeignKey("OrderId")
-                  .IsRequired()
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
+        // ✅ Mapeo: Movimiento (CashMovement)
+    modelBuilder.Entity<CashMovement>(entity =>
+    {
+        entity.ToTable("Movimientos"); // ⬅️ Cambiado
+        entity.HasKey(e => e.Id);
+        entity.Property(e => e.Id).HasColumnName("Id");
+        entity.Property(e => e.Type).HasColumnName("Type").HasConversion<string>();
+        entity.Property(e => e.Description).HasColumnName("Description");
+        entity.Property(e => e.Amount).HasColumnName("Amount");
+        entity.Property(e => e.Date).HasColumnName("Date");
+    });
+    } 
+} 
 
-        // ---------------- venta ----------------
-        modelBuilder.Entity<Sale>(entity =>
-        {
-            entity.ToTable("venta");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_venta");
-            entity.Property(e => e.ClienteId).HasColumnName("id_cliente");   // comprador (null = mostrador)
-            entity.Property(e => e.UsuarioId).HasColumnName("id_usuario");   // trabajador que procesó la venta
-            entity.Property(e => e.Date).HasColumnName("fecha_venta").HasColumnType("timestamp without time zone");
-            entity.Property(e => e.Total).HasColumnName("total").HasColumnType("numeric(10,2)");
-            entity.Property(e => e.TotalCost).HasColumnName("total_costo").HasColumnType("numeric(10,2)");
-            entity.Property(e => e.Profit).HasColumnName("ganancia").HasColumnType("numeric(10,2)");
 
-            entity.HasMany(e => e.Details)
-                  .WithOne()
-                  .HasForeignKey(d => d.SaleId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // ---------------- detalle_venta ----------------
-        modelBuilder.Entity<SaleDetail>(entity =>
-        {
-            entity.ToTable("detalle_venta");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_detalle_venta");
-            entity.Property(e => e.SaleId).HasColumnName("id_venta");
-            entity.Property(e => e.ProductId).HasColumnName("id_producto");
-            entity.Property(e => e.ProductName).HasColumnName("nombre_producto").IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Quantity).HasColumnName("cantidad");
-            entity.Property(e => e.UnitPrice).HasColumnName("precio_unitario").HasColumnType("numeric(10,2)");
-            entity.Property(e => e.UnitCost).HasColumnName("costo_unitario").HasColumnType("numeric(10,2)");
-        });
-
-        // ---------------- movimiento (libro de caja) ----------------
-        modelBuilder.Entity<CashMovement>(entity =>
-        {
-            entity.ToTable("movimiento");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id_movimiento");
-            entity.Property(e => e.UsuarioId).HasColumnName("id_usuario");
-            entity.Property(e => e.Date).HasColumnName("fecha_movimiento").HasColumnType("timestamp without time zone");
-            entity.Property(e => e.Type).HasColumnName("tipo").HasConversion<string>().HasMaxLength(20);
-            entity.Property(e => e.Description).HasColumnName("descripcion").IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Amount).HasColumnName("monto").HasColumnType("numeric(10,2)");
-        });
-    }
-}
+   
