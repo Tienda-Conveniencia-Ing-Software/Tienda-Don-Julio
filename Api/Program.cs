@@ -13,7 +13,11 @@ using TiendaBarrio.Core.Services;
 using DotNetEnv;
 
 // Cargar variables de entorno desde .env
-Env.Load();
+var envPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".env");
+if (File.Exists(envPath))
+{
+    Env.Load(envPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
