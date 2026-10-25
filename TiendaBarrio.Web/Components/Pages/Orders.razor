@@ -10,7 +10,7 @@
         <h3>📋 Panel de Pedidos (Trabajador)</h3>
         @if (pendingCount > 0)
         {
-            <span class="badge bg-danger fs-6">🔔 @pendingCount pedidos pendientes</span>
+            <span class="badge bg-danger fs-6"> @pendingCount pedidos pendientes</span>
         }
     </div>
     <hr />
@@ -60,13 +60,13 @@
                         <td>
                             @if (order.Status == "Pendiente")
                             {
-                                <button class="btn btn-sm btn-primary" @onclick="() => UpdateStatus(order.Id, "EnPreparacion")">
+                                <button class="btn btn-sm btn-primary" @onclick="() => AdvanceStatus(order)">
                                     ▶ Pasar a Preparación
                                 </button>
                             }
                             else if (order.Status == "EnPreparacion")
                             {
-                                <button class="btn btn-sm btn-success" @onclick="() => UpdateStatus(order.Id, "Entregado")">
+                                <button class="btn btn-sm btn-success" @onclick="() => AdvanceStatus(order)">
                                     ✔ Marcar Entregado
                                 </button>
                             }
@@ -95,7 +95,6 @@
 
         await LoadOrdersAsync();
 
-        // Polling: consultar cada 10 segundos
         timer = new Timer(async _ =>
         {
             await InvokeAsync(async () =>
@@ -122,9 +121,12 @@
         loading = false;
     }
 
-    private async Task UpdateStatus(int orderId, string newStatus)
+    // Método auxiliar para manejar el cambio de estado sin lambdas complejas
+    private async Task AdvanceStatus(OrderResponse order)
     {
-        var result = await Api.UpdateOrderStatusAsync(orderId, newStatus);
+        string newStatus = order.Status == "Pendiente" ? "EnPreparacion" : "Entregado";
+        
+        var result = await Api.UpdateOrderStatusAsync(order.Id, newStatus);
         if (result.Ok)
         {
             await LoadOrdersAsync();
