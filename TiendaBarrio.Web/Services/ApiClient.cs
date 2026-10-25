@@ -54,6 +54,11 @@ public class ApiClient
     public Task<ApiResult<List<MovementItem>>> GetMovementsAsync()
         => SendAsync<List<MovementItem>>(HttpMethod.Get, "api/finance/movements");
 
+        // ---------------- Reportes (HU-14) ----------------
+
+    public Task<ApiResult<List<TopProductItem>>> GetTopProductsAsync()
+        => SendAsync<List<TopProductItem>>(HttpMethod.Get, "api/reports/top-products");
+
     // ---------------- Internos ----------------
 
     private HttpRequestMessage BuildRequest(HttpMethod method, string url, object? body)
