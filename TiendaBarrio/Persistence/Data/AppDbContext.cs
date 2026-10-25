@@ -125,18 +125,17 @@ public class AppDbContext : DbContext
         entity.Property(e => e.UnitCost).HasColumnName("costo_unitario").HasColumnType("decimal(10,2)");
     });
 
-    // ✅ Mapeo: Movimiento (CashMovement)
-    modelBuilder.Entity<CashMovement>(entity =>
-    {
-        entity.ToTable("movimiento");
-        entity.HasKey(e => e.Id);
-        entity.Property(e => e.Id).HasColumnName("id_movimiento");
-        entity.Property(e => e.Type).HasColumnName("tipo").HasConversion<string>();
-        entity.Property(e => e.Description).HasColumnName("descripcion").HasMaxLength(200);
-        entity.Property(e => e.Amount).HasColumnName("monto").HasColumnType("decimal(10,2)");
-        entity.Property(e => e.Date).HasColumnName("fecha_movimiento");
-        // Nota: Si CashMovement tiene UsuarioId, mapealo aquí.
-    });
-}
-
+            // ✅ Mapeo: Movimiento (CashMovement)
+        modelBuilder.Entity<CashMovement>(entity =>
+        {
+            entity.ToTable("movimiento");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id_movimiento");
+            entity.Property(e => e.Type).HasColumnName("tipo").HasConversion<string>();
+            entity.Property(e => e.Description).HasColumnName("descripcion").HasMaxLength(200);
+            entity.Property(e => e.Amount).HasColumnName("monto").HasColumnType("decimal(10,2)");
+            entity.Property(e => e.Date).HasColumnName("fecha_movimiento");
+        });
+    } 
+} 
     
