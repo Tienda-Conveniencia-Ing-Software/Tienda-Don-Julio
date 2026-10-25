@@ -107,8 +107,4 @@ public class RegisterRequest
     public string Telefono { get; set; } = string.Empty;
 }
 
-public class CreateOrderItem
-{
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-}
+
