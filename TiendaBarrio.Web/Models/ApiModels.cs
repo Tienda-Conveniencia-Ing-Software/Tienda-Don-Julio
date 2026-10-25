@@ -74,3 +74,34 @@ public class OrderResponse
     public DateTime CreatedAt { get; set; }
     public List<OrderItemResponse> Items { get; set; } = new();
 }
+
+public class CartLine
+{
+    public int ProductId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public double UnitPrice { get; set; }
+    public int Quantity { get; set; }
+    public int MaxStock { get; set; }
+    public double Subtotal => UnitPrice * Quantity; 
+}
+
+public class CreateOrderRequest
+{
+    public int ClienteId { get; set; }
+    public List<OrderItemRequest> Items { get; set; } = new();
+}
+
+public class OrderItemRequest
+{
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+}
+
+public class RegisterRequest
+{
+    public string Nombre { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string Cedula { get; set; } = string.Empty;
+    public string Telefono { get; set; } = string.Empty;
+}
