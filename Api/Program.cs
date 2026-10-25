@@ -10,22 +10,15 @@ using TiendaBarrio.Persistence.Data;
 using TiendaBarrio.Persistence;
 using TiendaBarrio.Persistence.Interfaces;
 using TiendaBarrio.Core.Services;
-using DotNetEnv;
 
-// Cargar variables de entorno desde .env
-Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar DbContext con la cadena de conexión de PostgreSQL
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*";
 
-// Configuración de PostgreSQL forzando las credenciales
-builder.Services.AddDbContext<TiendaBarrio.Persistence.Data.AppDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // Forzamos la cadena de conexión completa, ignorando appsettings o variables de entorno para aislar el error.
-    string connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=postgres";
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql("Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*");
 });
 
 // Registrar repositorios y servicios del Core (definido en Core/Config)
