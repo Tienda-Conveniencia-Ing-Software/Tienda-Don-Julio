@@ -122,7 +122,7 @@ public class AppDbContext : DbContext
         entity.Property(e => e.UnitCost).HasColumnName("UnitCost");
     });
 
-    // ✅ Mapeo: Movimiento (CashMovement)
+        // ✅ Mapeo: Movimiento (CashMovement)
     modelBuilder.Entity<CashMovement>(entity =>
     {
         entity.ToTable("Movimientos"); // ⬅️ Cambiado
@@ -133,5 +133,8 @@ public class AppDbContext : DbContext
         entity.Property(e => e.Amount).HasColumnName("Amount");
         entity.Property(e => e.Date).HasColumnName("Date");
     });
+    } 
+} 
+
 
    
