@@ -1,0 +1,81 @@
+@page "/top-products"
+@inject ApiClient Api
+@inject AuthSession Session
+
+<PageTitle>Productos Más Vendidos - Tienda Don Julio</PageTitle>
+
+<div class="container mt-4">
+    <h3>📈 Productos Más Vendidos (HU-14)</h3>
+    <hr />
+
+    @if (!Session.IsLoggedIn)
+    {
+        <div class="alert alert-warning">
+            Debes <a href="login" class="alert-link">iniciar sesión</a> como Trabajador para ver este reporte.
+        </div>
+    }
+    else if (loading)
+    {
+        <p><em>Cargando reporte...</em></p>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (topProducts == null || !topProducts.Any())
+    {
+        <div class="alert alert-info">No hay ventas registradas todavía.</div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Cantidad Vendida</th>
+                    <th>Ingresos Totales</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in topProducts)
+                {
+                    <tr>
+                        <td>@product.ProductId</td>
+                        <td>@product.ProductName</td>
+                        <td>@product.TotalQuantitySold</td>
+                        <td>@product.TotalRevenue.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<TopProductItem>? topProducts;
+    private bool loading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Session.IsLoggedIn)
+        {
+            loading = false;
+            return;
+        }
+
+        var result = await Api.GetTopProductsAsync();
+
+        if (result.Ok)
+        {
+            topProducts = result.Data;
+        }
+        else
+        {
+            errorMessage = result.Error;
+        }
+
+        loading = false;
+    }
+}
