@@ -34,6 +34,13 @@
 						<span class="bi bi-cash-stack-nav-menu" aria-hidden="true"></span> Finanzas
 					</NavLink>
 				</div>
+
+				<!--  Solo los trabajadores pueden ver el reporte de más vendidos -->
+				<div class="nav-item px-3">
+					<NavLink class="nav-link" href="top-products">
+						<span class="bi bi-graph-up" aria-hidden="true"></span> Más Vendidos
+					</NavLink>
+				</div>
 			}
 
 			@if (Session.IsLoggedIn)
