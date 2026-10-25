@@ -89,10 +89,10 @@ public class CartLine
 public class CreateOrderRequest
 {
     public int ClienteId { get; set; }
-    public List<OrderItemRequest> Items { get; set; } = new();
+    public List<CreateOrderItem> Items { get; set; } = new();
 }
 
-public class OrderItemRequest
+public class CreateOrderItem
 {
     public int ProductId { get; set; }
     public int Quantity { get; set; }
