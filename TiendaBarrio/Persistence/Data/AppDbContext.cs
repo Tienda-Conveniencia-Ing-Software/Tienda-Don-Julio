@@ -94,7 +94,7 @@ public class AppDbContext : DbContext
         entity.ToTable("carrito_items");
         entity.HasKey(e => e.Id);
         entity.Property(e => e.Id).HasColumnName("id_carrito_items");
-        entity.Property(e => e.OrderId).HasColumnName("id_pedido");
+       // entity.Property(e => e.OrderId).HasColumnName("id_pedido");
         entity.Property(e => e.ProductId).HasColumnName("id_producto");
         entity.Property(e => e.Quantity).HasColumnName("cantidad");
         entity.Property(e => e.UnitPrice).HasColumnName("precio_unitario").HasColumnType("decimal(10,2)");
@@ -106,7 +106,7 @@ public class AppDbContext : DbContext
         entity.ToTable("venta");
         entity.HasKey(e => e.Id);
         entity.Property(e => e.Id).HasColumnName("id_venta");
-        // entity.Property(e => e.ClienteId).HasColumnName("id_cliente"); // Si Sale tiene esta prop
+        entity.Property(e => e.ClienteId).HasColumnName("id_cliente"); // Si Sale tiene esta prop
         entity.Property(e => e.Date).HasColumnName("fecha_venta");
         entity.Property(e => e.Total).HasColumnName("total").HasColumnType("decimal(10,2)");
         entity.Property(e => e.TotalCost).HasColumnName("total_costo").HasColumnType("decimal(10,2)");
