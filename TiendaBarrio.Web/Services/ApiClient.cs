@@ -191,4 +191,32 @@ public class ApiClient
 
         return message;
     }
+    // ---------------- Autenticación Extendida ----------------
+
+    public Task<ApiResult<bool>> RegisterAsync(string nombre, string email, string password, string cedula = "", string telefono = "")
+        => SendWithoutBodyWithDataAsync(HttpMethod.Post, "api/auth/register", new RegisterRequest { Nombre = nombre, Email = email, Password = password, Cedula = cedula, Telefono = telefono });
+
+    // ---------------- Pedidos ----------------
+
+    public Task<ApiResult<OrderResponse>> CreateOrderAsync(CreateOrderRequest order)
+        => SendAsync<OrderResponse>(HttpMethod.Post, "api/orders", order);
+
+    public Task<ApiResult<List<OrderResponse>>> GetMyOrdersAsync()
+        => SendAsync<List<OrderResponse>>(HttpMethod.Get, "api/orders/mine");
+
+    // Método helper privado para POSTs que responden 200/201 OK sin cuerpo complejo
+    private async Task<ApiResult<bool>> SendWithoutBodyWithDataAsync(HttpMethod method, string url, object body)
+    {
+        try
+        {
+            using var request = BuildRequest(method, url, body);
+            using var response = await _http.SendAsync(request);
+
+            return response.IsSuccessStatusCode
+                ? ApiResult<bool>.Success(true)
+                : ApiResult<bool>.Fail(await ReadErrorAsync(response));
+        }
+        catch (HttpRequestException) { return ApiResult<bool>.Fail(ConnectionError()); }
+        catch (TaskCanceledException) { return ApiResult<bool>.Fail("La API tardó demasiado en responder."); }
+    }
 }

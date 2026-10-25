@@ -17,6 +17,7 @@ if (!apiBaseUrl.EndsWith('/')) apiBaseUrl += "/";
 builder.Services.AddScoped<AuthSession>();
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<CartState>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
