@@ -54,10 +54,22 @@ public class ApiClient
     public Task<ApiResult<List<MovementItem>>> GetMovementsAsync()
         => SendAsync<List<MovementItem>>(HttpMethod.Get, "api/finance/movements");
 
-        // ---------------- Reportes (HU-14) ----------------
+    // ---------------- Reportes (HU-14) ----------------
 
     public Task<ApiResult<List<TopProductItem>>> GetTopProductsAsync()
         => SendAsync<List<TopProductItem>>(HttpMethod.Get, "api/reports/top-products");
+
+    // ---------------- Pedidos (HU-06) ----------------
+
+    public Task<ApiResult<List<OrderResponse>>> GetAllOrdersAsync()
+        => SendAsync<List<OrderResponse>>(HttpMethod.Get, "api/orders");
+
+    public Task<ApiResult<int>> GetPendingOrdersCountAsync()
+        => SendAsync<int>(HttpMethod.Get, "api/orders/pending-count");
+
+    // ✅ Corregido para enviar el estado en el cuerpo (JSON) tal como lo espera el Controller
+    public Task<ApiResult<bool>> UpdateOrderStatusAsync(int orderId, string newStatus)
+        => SendAsync<bool>(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
 
     // ---------------- Internos ----------------
 
