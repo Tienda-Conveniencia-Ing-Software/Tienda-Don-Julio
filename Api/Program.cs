@@ -16,12 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*";
 
-// Configuración de PostgreSQL forzando las credenciales
-builder.Services.AddDbContext<TiendaBarrio.Persistence.Data.AppDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // Forzamos la cadena de conexión completa, ignorando appsettings o variables de entorno para aislar el error.
-    string connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=postgres";
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql("Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*");
 });
 
 // Registrar repositorios y servicios del Core (definido en Core/Config)
