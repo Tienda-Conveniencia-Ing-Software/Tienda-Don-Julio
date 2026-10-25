@@ -26,25 +26,25 @@ public class AppDbContext : DbContext
     public DbSet<CartItem> CarritoItems { get; set; }
     public DbSet<CashMovement> Movimientos { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
+  //  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+  //  {
         // Solo configura si no ha sido configurado previamente por la Inyección de Dependencias
-        if (!optionsBuilder.IsConfigured)
-        {
-            var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-            var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-            var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
-            var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-            var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                password = "postgres"; // Contraseña por defecto para local
-            }
-            var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
+  //      if (!optionsBuilder.IsConfigured)
+  //      {
+  //          var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+  //          var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+    //        var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "BD_Tienda";
+     //       var user = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
+      //      var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+       //     if (string.IsNullOrWhiteSpace(password))
+        //    {
+         //       password = "postgres"; // Contraseña por defecto para local
+          //  }
+      //      var connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
 
-            optionsBuilder.UseNpgsql(connectionString);
-        }
-    }
+      //      optionsBuilder.UseNpgsql(connectionString);
+      //  }
+   // }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
