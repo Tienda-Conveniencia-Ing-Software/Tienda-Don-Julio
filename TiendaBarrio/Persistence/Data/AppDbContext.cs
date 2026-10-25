@@ -92,7 +92,7 @@ public class AppDbContext : DbContext
         entity.ToTable("Carrito_Items"); // ⬅️ Cambiado
         entity.HasKey(e => e.Id);
         entity.Property(e => e.Id).HasColumnName("Id");
-        entity.Property(e => e.OrderId).HasColumnName("OrderId");
+        //entity.Property(e => e.OrderId).HasColumnName("OrderId");
         entity.Property(e => e.ProductId).HasColumnName("ProductId");
         entity.Property(e => e.Quantity).HasColumnName("Quantity");
         entity.Property(e => e.UnitPrice).HasColumnName("UnitPrice");
