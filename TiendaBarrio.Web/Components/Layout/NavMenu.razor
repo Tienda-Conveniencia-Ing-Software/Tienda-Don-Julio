@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject AuthSession Session
+@inject CartState Cart
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
@@ -21,6 +22,27 @@
 				</NavLink>
 			</div>
 
+			<!-- Portal Cliente / Compras -->
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href="catalogo">
+					<span class="bi bi-cart-fill-nav-menu" aria-hidden="true"></span> Catálogo
+					@if (Cart.Count > 0)
+					{
+						<span class="badge bg-warning text-dark ms-auto">@Cart.Count</span>
+					}
+				</NavLink>
+			</div>
+
+			@if (Session.IsLoggedIn)
+			{
+				<div class="nav-item px-3">
+					<NavLink class="nav-link" href="mis-pedidos">
+						<span class="bi bi-bag-check-fill-nav-menu" aria-hidden="true"></span> Mis Pedidos
+					</NavLink>
+				</div>
+			}
+
+			<!-- Panel de Control e Inventario -->
 			<div class="nav-item px-3">
 				<NavLink class="nav-link" href="inventario">
 					<span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Inventario
@@ -36,9 +58,10 @@
 				</div>
 			}
 
+			<!-- Estado de Sesión -->
 			@if (Session.IsLoggedIn)
 			{
-				<div class="nav-item px-3 text-white-50 small mt-3">
+				<div class="nav-item px-3 text-white-50 small mt-3 border-top pt-2">
 					@Session.Nombre<br />
 					<span class="badge bg-secondary">@Session.Role</span>
 				</div>
@@ -48,9 +71,14 @@
 			}
 			else
 			{
-				<div class="nav-item px-3">
+				<div class="nav-item px-3 mt-2">
 					<NavLink class="nav-link" href="login">
 						<span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Iniciar sesión
+					</NavLink>
+				</div>
+				<div class="nav-item px-3">
+					<NavLink class="nav-link" href="registro">
+						<span class="bi bi-person-plus-fill-nav-menu" aria-hidden="true"></span> Registrarse
 					</NavLink>
 				</div>
 			}
@@ -59,9 +87,13 @@
 </div>
 
 @code {
-	protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+	protected override void OnInitialized()
+	{
+		Session.Changed += OnStateChanged;
+		Cart.OnChange += OnStateChanged;
+	}
 
-	private void OnSessionChanged() => InvokeAsync(StateHasChanged);
+	private void OnStateChanged() => InvokeAsync(StateHasChanged);
 
 	private void CerrarSesion()
 	{
@@ -69,5 +101,9 @@
 		Navigation.NavigateTo("login");
 	}
 
-	public void Dispose() => Session.Changed -= OnSessionChanged;
+	public void Dispose()
+	{
+		Session.Changed -= OnStateChanged;
+		Cart.OnChange -= OnStateChanged;
+	}
 }

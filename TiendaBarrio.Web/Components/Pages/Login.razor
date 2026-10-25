@@ -6,19 +6,27 @@
 <PageTitle>Iniciar sesión - Tienda Don Julio</PageTitle>
 
 <div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="card-title mb-0">Iniciar sesión</h4>
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="card-title mb-0 fw-bold">Iniciar sesión</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
 
                 @if (Session.IsLoggedIn)
                 {
-                    <div class="alert alert-success">
+                    <div class="alert alert-success text-center">
                         Sesión iniciada como <strong>@Session.Nombre</strong> (@Session.Role).
                     </div>
-                    <a class="btn btn-primary w-100 mb-2" href="inventario">Ir al inventario</a>
+                    @if (Session.IsWorker)
+                    {
+                        <a class="btn btn-primary w-100 mb-2" href="inventario">Ir al Inventario</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-success w-100 mb-2" href="catalogo">Ir al Catálogo</a>
+                        <a class="btn btn-outline-primary w-100 mb-2" href="mis-pedidos">Ver Mis Pedidos</a>
+                    }
                     <button class="btn btn-outline-secondary w-100" @onclick="Api.Logout">Cerrar sesión</button>
                 }
                 else
@@ -31,18 +39,22 @@
                     <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
                         <div class="mb-3">
                             <label class="form-label">Correo electrónico</label>
-                            <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="admin@donjulio.com" />
+                            <InputText class="form-control" @bind-Value="loginModel.Email" placeholder="correo@ejemplo.com" required />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Contraseña</label>
-                            <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="******" />
+                            <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="******" required />
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100" disabled="@isLoading">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" disabled="@isLoading">
                             @(isLoading ? "Ingresando..." : "Ingresar")
                         </button>
                     </EditForm>
+
+                    <div class="text-center mt-3 pt-2 border-top">
+                        <small class="text-muted">¿No tienes una cuenta? <a href="registro" class="text-primary fw-bold">Regístrate aquí</a></small>
+                    </div>
                 }
             </div>
         </div>
@@ -71,7 +83,16 @@
         if (result.Ok)
         {
             loginModel.Password = string.Empty;
-            Navigation.NavigateTo("inventario");
+            
+            // Redirección inteligente según el Rol
+            if (Session.IsWorker)
+            {
+                Navigation.NavigateTo("inventario");
+            }
+            else
+            {
+                Navigation.NavigateTo("catalogo");
+            }
         }
         else
         {
