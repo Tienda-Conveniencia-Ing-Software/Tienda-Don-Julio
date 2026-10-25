@@ -74,3 +74,23 @@ public class OrderResponse
     public DateTime CreatedAt { get; set; }
     public List<OrderItemResponse> Items { get; set; } = new();
 }
+
+public class CartLine
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public double Price { get; set; }
+    public int Quantity { get; set; }
+}
+
+public class CreateOrderRequest
+{
+    public int ClienteId { get; set; }
+    public List<OrderItemRequest> Items { get; set; } = new();
+}
+
+public class OrderItemRequest
+{
+    public int ProductId { get; set; }
+    public int Quantity { get; set; }
+}
