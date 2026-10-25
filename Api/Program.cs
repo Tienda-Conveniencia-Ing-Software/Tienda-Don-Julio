@@ -20,17 +20,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Configurar DbContext con la cadena de conexión de PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
+// Configuración de PostgreSQL forzando las credenciales
+builder.Services.AddDbContext<TiendaBarrio.Persistence.Data.AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new InvalidOperationException("La cadena de conexión 'DefaultConnection' no está configurada.");
-    }
-
+    // Forzamos la cadena de conexión completa, ignorando appsettings o variables de entorno para aislar el error.
+    string connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=postgres";
     options.UseNpgsql(connectionString);
-    
 });
 
 // Registrar repositorios y servicios del Core (definido en Core/Config)
