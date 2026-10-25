@@ -55,3 +55,22 @@ public class ApiResult<T>
     public static ApiResult<T> Success(T? data) => new() { Ok = true, Data = data };
     public static ApiResult<T> Fail(string error) => new() { Ok = false, Error = error };
 }
+
+public class OrderItemResponse
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public double UnitPrice { get; set; }
+}
+
+public class OrderResponse
+{
+    public int Id { get; set; }
+    public int ClienteId { get; set; }
+    public string ClienteNombre { get; set; } = string.Empty;
+    public double Total { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public List<OrderItemResponse> Items { get; set; } = new();
+}
