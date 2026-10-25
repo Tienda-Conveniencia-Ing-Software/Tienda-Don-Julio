@@ -62,6 +62,7 @@ public class OrderItemResponse
     public string ProductName { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public double UnitPrice { get; set; }
+    public double Subtotal => Quantity * UnitPrice; 
 }
 
 public class OrderResponse
@@ -88,10 +89,10 @@ public class CartLine
 public class CreateOrderRequest
 {
     public int ClienteId { get; set; }
-    public List<OrderItemRequest> Items { get; set; } = new();
+    public List<CreateOrderItem> Items { get; set; } = new();
 }
 
-public class OrderItemRequest
+public class CreateOrderItem
 {
     public int ProductId { get; set; }
     public int Quantity { get; set; }
@@ -105,3 +106,5 @@ public class RegisterRequest
     public string Cedula { get; set; } = string.Empty;
     public string Telefono { get; set; } = string.Empty;
 }
+
+
