@@ -121,10 +121,10 @@
         loading = false;
     }
 
-    // Método auxiliar para manejar el cambio de estado sin lambdas complejas
-    private async Task AdvanceStatus(OrderResponse order)
+       private async Task AdvanceStatus(OrderResponse order)
     {
-        string newStatus = order.Status == "Pendiente" ? "EnPreparacion" : "Entregado";
+        // Usamos los nombres exactos del enum: EnProceso y Completado
+        string newStatus = order.Status == "Pendiente" ? "EnProceso" : "Completado";
         
         var result = await Api.UpdateOrderStatusAsync(order.Id, newStatus);
         if (result.Ok)
@@ -136,9 +136,3 @@
             errorMessage = result.Error;
         }
     }
-
-    public void Dispose()
-    {
-        timer?.Dispose();
-    }
-}
