@@ -58,7 +58,7 @@ public class OrderService
             Items = cartItems,
             Total = cartItems.Sum(i => i.Quantity * i.UnitPrice),
             Status = OrderStatus.Pendiente,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.Now
         };
 
         _context.Pedidos.Add(order);
