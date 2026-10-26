@@ -1,56 +1,192 @@
-# Tienda-Don-Julio
-🛒 Tienda Don Julio - Sistema de Gestión ComercialSistema de gestión para tiendas de barrio desarrollado con .NET 10 bajo una arquitectura multicapa desacoplada. La solución integra una API RESTful, un cliente interactivo en Blazor WebApp, persistencia con Entity Framework Core, soporte para SQLite (desarrollo local) y PostgreSQL (producción en Docker).🏗️ Arquitectura del SistemaLa solución está estructurada en capas independientes para garantizar mantenibilidad, escalabilidad y separación de responsabilidades:┌─────────────────────────────────────────────────────────┐
-│              TiendaBarrio.Web (Blazor UI)               │
-│                  http://localhost:5142                  │
-└───────────────────────────┬─────────────────────────────┘
-                            │  HTTP / JSON (HttpClient)
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Api (ASP.NET Core)                   │
-│                  http://localhost:5222                  │
-└───────────────────────────┬─────────────────────────────┘
-                            │  EF Core
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│          TiendaBarrio.Core & Persistence                │
-│    (Modelos, Servicios, Repositorios, DbContext)        │
-└───────────────────────────┬─────────────────────────────┘
-                            │  SQL Queries
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│          PostgreSQL / SQLite Database                   │
-│                    Port: 5432                           │
-└─────────────────────────────────────────────────────────┘
-Proyectos de la SoluciónTiendaBarrio.Core: Definición de modelos de dominio (Cliente, Producto, MovimientoCaja) e interfaces de servicios.TiendaBarrio.Persistence: Implementación del contexto de Entity Framework Core (AppDbContext) y repositorios de datos.Api: Web API RESTful que expone los endpoints de autenticación, inventario y finanzas.TiendaBarrio.Web: Aplicación Blazor Web Interactive (Server/Client) que consume la API REST.🛠️ Tecnologías UtilizadasFramework: .NET 10 (C# 13)API Framework: ASP.NET Core Web APIFrontend: Blazor Web App (.NET 10) + Bootstrap 5ORM: Entity Framework Core 9.0.4Bases de Datos: PostgreSQL 16 (Docker) / SQLite (Local)Seguridad: BCrypt.Net para hashing de contraseñasContenedores: Docker & Docker Compose🚀 Requisitos PreviosAsegúrate de contar con los siguientes componentes instalados en tu sistema:.NET 10 SDKDocker DesktopGit⚡ Guía de Instalación y EjecuciónOpción 1: Ejecución Completa con Docker Compose (Recomendada)Clonar el repositorio:git clone https://github.com/tu-usuario/Tienda-Don-Julio.git
-cd Tienda-Don-Julio
-Construir y levantar los contenedores de PostgreSQL y Web API:docker compose -f Docker/docker-compose.yml up --build -d
-Verificar que los contenedores estén corriendo (tiendabarrio_db y tiendabarrio_api):docker ps
-Ejecutar el cliente Blazor Web:dotnet run --project TiendaBarrio.Web/TiendaBarrio.Web.csproj
-Abrir el navegador en: http://localhost:5142Opción 2: Ejecución Local en Modo Desarrollo (SQLite)Iniciar la API REST en la primera terminal:dotnet run --project Api/Api.csproj
-La API iniciará en http://localhost:5222.Iniciar el cliente Blazor Web en una segunda terminal:dotnet run --project TiendaBarrio.Web/TiendaBarrio.Web.csproj
-El cliente iniciará en http://localhost:5142.🔑 Credenciales de Acceso (Data Seeding)El sistema inicializa automáticamente la base de datos con una cuenta de usuario administrador:Correo: admin@donjulio.comContraseña: admin123Rol: Trabajador / Administrador📡 Documentación de la API REST1. Autenticación (/api/auth)MétodoEndpointDescripciónBody (JSON)POST/api/auth/loginValida credenciales y retorna la entidad Cliente.{ "email": "admin@donjulio.com", "password": "admin123" }2. Inventario (/api/inventory)MétodoEndpointDescripciónBody (JSON)GET/api/inventoryObtiene la lista completa de productos.N/APOST/api/inventoryRegistra un nuevo producto en el catálogo.{ "nombre": "Pan Tajado", "precioVenta": 4000, "precioCosto": 3000, "stock": 20 }DELETE/api/inventory/{id}Elimina un producto por su ID.N/A3. Finanzas (/api/finance)MétodoEndpointDescripciónBody (JSON)GET/api/finance/balanceRetorna el balance total del flujo de caja.N/AGET/api/finance/movementsRetorna el historial de ingresos y egresos.N/A🐳 Estructura de Contenedores DockerEl archivo Docker/docker-compose.yml orquesta dos servicios principales en la misma red de contenedores:version: '3.8'
+# Tienda Don Julio
 
-services:
-  db:
-    image: postgres:16-alpine
-    container_name: tiendabarrio_db
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: tiendabarrio
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+Sistema de gestión para una tienda de barrio, desarrollado en **.NET 10** con arquitectura por capas:
+una **API REST** con autenticación JWT, una **web en Blazor** que la consume, persistencia con
+**Entity Framework Core** sobre **PostgreSQL 16**, y una **app de consola** original que comparte la misma lógica de negocio.
 
-  api:
-    build:
-      context: ..
-      dockerfile: Api/Dockerfile
-    container_name: tiendabarrio_api
-    ports:
-      - "5222:8080"
-    environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=tiendabarrio;Username=postgres;Password=postgres
-    depends_on:
-      db:
-        condition: service_healthy
-✒️ LicenciaEste proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
+Proyecto de Ingeniería de Software (Sprint 4).
+
+## Arquitectura
+
+```
+  Blazor (TiendaBarrio.Web)  ──HTTP/JSON──▶  API REST (Api)  ──▶  Services (Core)  ──▶  Repositorios  ──▶  PostgreSQL
+        http://localhost:5142                http://localhost:5222        (TiendaBarrio/)                      localhost:5432
+                                                                                  ▲
+                                                   App de consola ────────────────┘
+```
+
+| Proyecto | Carpeta | Qué hace |
+|---|---|---|
+| Core, Persistence y consola | `TiendaBarrio/` | Modelos, servicios de negocio, repositorios, `AppDbContext` y la app de consola |
+| API | `Api/` | Controllers, DTOs, JWT y Swagger |
+| Web | `TiendaBarrio.Web/` | Interfaz Blazor; solo habla con la API por HTTP (no toca la base de datos) |
+| Pruebas | `TiendaBarrio.Tests/` | Pruebas unitarias (xUnit) del dominio |
+| Base de datos | `database/` | Scripts SQL de inicialización y modelo relacional |
+| Docker | `Docker/` | `docker-compose.yml` (PostgreSQL + API) |
+| Documentación | `docs/` | Contratos de la API y colección de Postman |
+
+## Requisitos
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Git
+
+## Cómo ejecutar
+
+### 1. Levantar la base de datos y la API (Docker)
+
+```bash
+cd Docker
+docker compose up --build
+```
+
+La primera vez, PostgreSQL ejecuta automáticamente los scripts de `database/init/`
+(crean las tablas y cargan los datos de prueba). La API queda en:
+
+- Swagger: http://localhost:5222/swagger
+- PostgreSQL: `localhost:5432` (base `tiendabarrio`, usuario `postgres`, clave `postgres`)
+
+### 2. Levantar la web (en otra terminal, desde la raíz del repo)
+
+```bash
+dotnet run --project TiendaBarrio.Web
+```
+
+Abrir http://localhost:5142 (si no se abre solo).
+
+> La web todavía no está incluida en el `docker-compose.yml`; se ejecuta con `dotnet run`.
+
+### 3. (Opcional) App de consola
+
+```bash
+dotnet run --project TiendaBarrio/Tienda-Don-Julio.csproj
+```
+
+Usa la misma base de PostgreSQL del contenedor (`localhost:5432`).
+
+### Ejecutar la API sin Docker para la API
+
+Con la base de datos del compose arriba (`docker compose up db`), puedes correr la API desde el IDE o con:
+
+```bash
+dotnet run --project Api
+```
+
+En desarrollo usa `Api/appsettings.Development.json` (apunta a `localhost:5432`, base `tiendabarrio`).
+**Todo el equipo usa la base del contenedor**; no se necesita un PostgreSQL local propio.
+
+## Usuarios de prueba
+
+| Correo | Contraseña | Rol |
+|---|---|---|
+| `admin@donjulio.com` | `admin123` | Trabajador |
+| `carlos@test.com` | `test123` | Trabajador |
+| `juan@test.com` | `test123` | Cliente |
+| `maria@test.com` | `test123` | Cliente |
+| `ana@test.com` | `test123` | Cliente |
+| `pedro@test.com` | `test123` | Cliente |
+
+Son solo para desarrollo. Los clientes nuevos se registran en `/registro`.
+
+## Base de datos
+
+El esquema y los datos iniciales **no se definen en C#**: viven en scripts SQL.
+
+| Archivo | Contenido |
+|---|---|
+| `database/init/01-schema.sql` | Tablas, llaves foráneas, restricciones e índices |
+| `database/init/02-seed.sql` | Cuentas (hash BCrypt), productos, ventas, pedidos y caja de ejemplo |
+| `database/modelo-relacional.md` | Descripción y diagrama del modelo |
+
+EF Core solo **mapea** las entidades a esas tablas (`TiendaBarrio/Persistence/Data/AppDbContext.cs`).
+Si cambias una tabla o columna, cambia el script **y** el mapeo, y actualiza `modelo-relacional.md`.
+
+### Reiniciar la base de datos desde cero
+
+PostgreSQL solo ejecuta los scripts cuando el volumen está vacío, por eso hay que borrarlo:
+
+```bash
+cd Docker
+docker compose down -v
+docker compose up --build
+```
+
+Para revisar la base directamente:
+
+```bash
+docker exec -it tiendabarrio_db psql -U postgres -d tiendabarrio -c "\dt"
+```
+
+## Reglas del negocio
+
+- El cliente crea un **pedido** (`Pendiente`); no se toca inventario ni caja.
+- Cuando el trabajador lo **confirma**, en una sola transacción se valida y descuenta el stock,
+  se crea la **venta** con su detalle, se registra el **ingreso** en caja y el pedido pasa a `Completado`.
+- Estados del pedido: `Pendiente`, `EnProceso`, `Completado`, `Cancelado`.
+- Roles: `Cliente` (compra y consulta sus pedidos) y `Trabajador` (inventario, pedidos, finanzas y reportes).
+
+## Endpoints de la API
+
+Documentación interactiva en `/swagger`. Se autentica con `Authorization: Bearer <token>` (el token sale de `POST /api/auth/login`).
+
+| Método | Ruta | Acceso |
+|---|---|---|
+| POST | `/api/auth/login` | Público |
+| POST | `/api/auth/register` | Público |
+| GET | `/api/inventory`, `/api/inventory/{id}` | Público |
+| GET | `/api/inventory/low-stock` | Trabajador |
+| POST / PUT / DELETE | `/api/inventory`, `/api/inventory/{id}` | Trabajador |
+| POST | `/api/inventory/{id}/stock` | Trabajador (cantidad positiva aumenta, negativa disminuye) |
+| POST | `/api/orders` | Autenticado (el cliente sale del token) |
+| GET | `/api/orders/mine` | Autenticado |
+| GET | `/api/orders`, `/api/orders/pending-count` | Trabajador |
+| POST | `/api/orders/{id}/confirm` | Trabajador |
+| PUT | `/api/orders/{id}/status` | Trabajador |
+| GET | `/api/finance/balance`, `/api/finance/movements` | Trabajador |
+| POST | `/api/finance/movements` | Trabajador |
+| GET | `/api/reports/top-products` | Trabajador |
+
+Contratos detallados: `docs/api-contratos.md`. Colección de Postman: `docs/postman/`.
+
+## Páginas de la web
+
+| Ruta | Para quién |
+|---|---|
+| `/` | Todos |
+| `/login`, `/registro` | Todos |
+| `/catalogo` | Cliente (catálogo, carrito y checkout) |
+| `/mis-pedidos` | Cliente |
+| `/inventario` | Lectura para todos; edición para Trabajador |
+| `/orders` | Trabajador (panel de pedidos con aviso de pendientes) |
+| `/finanzas`, `/top-products` | Trabajador |
+
+## Pruebas
+
+```bash
+dotnet test
+```
+
+Las pruebas unitarias cubren las reglas del dominio (productos, ventas, movimientos de caja,
+cuentas, pedidos y carrito) y comprueban que los estados, tipos y roles de C# coinciden con los
+`CHECK` de `database/init/01-schema.sql`.
+
+## Variables de entorno
+
+| Variable | Dónde | Para qué |
+|---|---|---|
+| `ConnectionStrings__DefaultConnection` | API | Cadena de conexión a PostgreSQL |
+| `Jwt__Key` | API | Clave secreta del JWT (mínimo 32 caracteres) |
+| `Api__BaseUrl` | Web | URL de la API (por defecto `http://localhost:5222/`) |
+| `POSTGRES_PASSWORD`, `JWT_KEY` | `Docker/.env` | Valores para el compose (copia `Docker/.env.example`) |
+
+En desarrollo funcionan sin configurar nada. **Para cualquier entorno real, cambia las contraseñas y la clave JWT.**
+
+## Problemas frecuentes
+
+| Síntoma | Solución |
+|---|---|
+| La API da error de tabla inexistente | La base se creó sin los scripts: `docker compose down -v` y vuelve a levantar |
+| `port is already allocated` en 5432 | Hay otro PostgreSQL local ocupando el puerto; deténlo o cambia el puerto en el compose |
+| La web dice "No se pudo conectar con la API" | Verifica que `docker ps` muestre `tiendabarrio_api` y que http://localhost:5222/swagger abra |
+| Al recargar la web se pierde la sesión | Es una limitación conocida: hay que iniciar sesión otra vez |
+| La terminal queda en `(END)` o `:` | Presiona `q` |
