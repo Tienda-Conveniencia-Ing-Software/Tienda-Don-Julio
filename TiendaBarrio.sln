@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiendaBarrio.Web", "TiendaB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api", "Api\Api.csproj", "{69053B5A-30F0-413D-A7B3-3FD8F024F6F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TiendaBarrio.Tests", "TiendaBarrio.Tests\TiendaBarrio.Tests.csproj", "{66EE5AE2-92AC-445F-A515-7E455037809F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TiendaBarrio", "TiendaBarrio", "{6FE91EA2-8B9C-251F-D1EB-D465BE777656}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,18 @@ Global
 		{69053B5A-30F0-413D-A7B3-3FD8F024F6F0}.Release|x64.Build.0 = Release|Any CPU
 		{69053B5A-30F0-413D-A7B3-3FD8F024F6F0}.Release|x86.ActiveCfg = Release|Any CPU
 		{69053B5A-30F0-413D-A7B3-3FD8F024F6F0}.Release|x86.Build.0 = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|x64.Build.0 = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Debug|x86.Build.0 = Debug|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|x64.ActiveCfg = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|x64.Build.0 = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|x86.ActiveCfg = Release|Any CPU
+		{66EE5AE2-92AC-445F-A515-7E455037809F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
