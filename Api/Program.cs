@@ -14,12 +14,13 @@ using TiendaBarrio.Core.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = "Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*";
-
-builder.Services.AddDbContext<AppDbContext>(options =>
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
 {
-    options.UseNpgsql("Host=localhost;Port=5432;Database=BD_Tienda;Username=postgres;Password=neji1514j*");
-});
+    throw new InvalidOperationException("Falta ConnectionStrings:DefaultConnection (variable de entorno ConnectionStrings__DefaultConnection).");
+}
+
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 // Registrar repositorios y servicios del Core (definido en Core/Config)
 builder.Services.AddTiendaCore();

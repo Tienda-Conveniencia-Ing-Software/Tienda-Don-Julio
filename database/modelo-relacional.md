@@ -4,6 +4,80 @@ Las tablas se crean con `database/init/01-schema.sql` y se cargan con `database/
 (se ejecutan solas la primera vez que arranca el contenedor de PostgreSQL con el volumen vacío).
 El diagrama `BD_Tienda.drawio.png` debe actualizarse para reflejar los cambios de abajo.
 
+## Diagrama
+
+```mermaid
+erDiagram
+    cliente ||--o{ pedido : "realiza"
+    pedido ||--|{ carrito_items : "contiene"
+    producto ||--o{ carrito_items : "aparece en"
+    cliente |o--o{ venta : "compra (id_cliente)"
+    cliente |o--o{ venta : "procesa (id_usuario)"
+    venta ||--|{ detalle_venta : "tiene"
+    producto ||--o{ detalle_venta : "se vende en"
+    cliente |o--o{ movimiento : "registra (id_usuario)"
+
+    cliente {
+        int id_cliente PK
+        string nombre_cliente
+        string cedula
+        string telefono
+        string email UK
+        string contrasena_hash
+        string rol
+        timestamp fecha_creacion
+    }
+    producto {
+        int id_producto PK
+        string nombre_producto
+        numeric precio_ventas
+        numeric precio_compra
+        int stock
+    }
+    pedido {
+        int id_pedido PK
+        int id_cliente FK
+        timestamp fecha
+        string estado
+        numeric total
+    }
+    carrito_items {
+        int id_carrito_items PK
+        int id_pedido FK
+        int id_producto FK
+        int cantidad
+        numeric precio_unitario
+    }
+    venta {
+        int id_venta PK
+        int id_cliente FK
+        int id_usuario FK
+        timestamp fecha_venta
+        numeric total
+        numeric total_costo
+        numeric ganancia
+    }
+    detalle_venta {
+        int id_detalle_venta PK
+        int id_venta FK
+        int id_producto FK
+        string nombre_producto
+        int cantidad
+        numeric precio_unitario
+        numeric costo_unitario
+    }
+    movimiento {
+        int id_movimiento PK
+        int id_usuario FK
+        timestamp fecha_movimiento
+        string tipo
+        string descripcion
+        numeric monto
+    }
+```
+
+(GitHub dibuja este diagrama automáticamente. El archivo `BD_Tienda.drawio.png` es la versión anterior y debe volver a exportarse.)
+
 ## Tablas
 
 | Tabla | Clave primaria | Columnas principales | Llaves foráneas |
