@@ -63,13 +63,21 @@ public class AuthService
         if (exists)
             throw new InvalidOperationException("El correo electrónico ya se encuentra registrado.");
 
+        // Validar cédula única (si la proporcionaron)
+        if (!string.IsNullOrWhiteSpace(dto.Cedula) && dto.Cedula.Trim() != "00000000")
+        {
+            var cedulaExists = await _context.Clientes.AnyAsync(c => c.Cedula == dto.Cedula.Trim());
+            if (cedulaExists)
+                throw new InvalidOperationException("La cédula ya se encuentra registrada.");
+        }
+
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
         var nuevoCliente = new Cliente(
             id: 0,
             nombre: dto.Nombre,
-            cedula: string.IsNullOrWhiteSpace(dto.Cedula) ? "00000000" : dto.Cedula,
-            telefono: string.IsNullOrWhiteSpace(dto.Telefono) ? "0000000000" : dto.Telefono,
+            cedula: string.IsNullOrWhiteSpace(dto.Cedula) ? "00000000" : dto.Cedula.Trim(),
+            telefono: string.IsNullOrWhiteSpace(dto.Telefono) ? "0000000000" : dto.Telefono.Trim(),
             email: normalizedEmail,
             passwordHash: passwordHash,
             role: "Cliente"

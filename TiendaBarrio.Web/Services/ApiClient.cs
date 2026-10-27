@@ -29,12 +29,12 @@ public class ApiClient
         var result = await SendAsync<LoginResponse>(HttpMethod.Post, "api/auth/login", new { email, password });
         if (result.Ok && result.Data != null)
         {
-            _session.Start(result.Data);
+            await _session.StartAsync(result.Data);
         }
         return result;
     }
 
-    public void Logout() => _session.Clear();
+    public async void Logout() => await _session.ClearAsync();
 
     // ---------------- Inventario ----------------
 

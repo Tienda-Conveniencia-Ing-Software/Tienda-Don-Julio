@@ -33,9 +33,9 @@ public class SaleService
                 .FirstOrDefaultAsync(o => o.Id == orderId)
                 ?? throw new KeyNotFoundException($"Pedido con ID {orderId} no encontrado.");
 
-            if (order.Status != OrderStatus.Pendiente)
+            if (order.Status != OrderStatus.Pendiente && order.Status != OrderStatus.EnProceso)
             {
-                throw new InvalidOperationException($"El pedido #{orderId} ya no se encuentra en estado Pendiente.");
+                throw new InvalidOperationException($"El pedido #{orderId} no se encuentra en estado Pendiente o EnProceso.");
             }
 
             var trabajador = await _context.Clientes.FindAsync(trabajadorId);
