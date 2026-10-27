@@ -111,6 +111,12 @@ public class OrdersController : ControllerBase
         {
             if (Enum.TryParse<OrderStatus>(request.NewStatus, true, out var newStatus))
             {
+                // ✅ VALIDACIÓN: No permitir Completado por esta vía
+                if (newStatus == OrderStatus.Completado)
+                {
+                    return BadRequest(new { message = "Para completar un pedido, use el endpoint POST /api/orders/{id}/confirm." });
+                }
+
                 await _orderService.UpdateOrderStatusAsync(id, newStatus);
                 return Ok();
             }
