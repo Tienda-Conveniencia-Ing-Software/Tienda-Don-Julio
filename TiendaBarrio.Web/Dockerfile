@@ -2,14 +2,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copiamos TODO el código primero (así no falla si la ruta es distinta)
+# Copiamos los archivos de proyecto específicamente desde la raíz
+COPY ["TiendaBarrio.Web/TiendaBarrio.Web.csproj", "TiendaBarrio.Web/"]
+COPY ["TiendaBarrio/Tienda-Don-Julio.csproj", "TiendaBarrio/"]
+
+# Restauramos (aquí ya debería encontrar el archivo)
+RUN dotnet restore "TiendaBarrio.Web/TiendaBarrio.Web.csproj"
+
+# Copiamos el resto de los archivos (código fuente)
 COPY . .
 
-# Entramos a la carpeta de la web y restauramos
+# Publicamos
 WORKDIR "/src/TiendaBarrio.Web"
-RUN dotnet restore "TiendaBarrio.Web.csproj"
-
-# Compilamos
 RUN dotnet publish "TiendaBarrio.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Etapa 2: Ejecutar
