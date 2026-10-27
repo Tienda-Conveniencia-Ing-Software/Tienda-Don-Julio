@@ -71,8 +71,8 @@ public class ApiClient
     public Task<ApiResult<bool>> UpdateOrderStatusAsync(int orderId, string newStatus)
         => SendWithoutBodyAsync(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
 
-    public Task<ApiResult<bool>> ConfirmOrderAsync(int orderId)
-        => SendAsync<bool>(HttpMethod.Post, $"api/orders/{orderId}/confirm");
+    public Task<ApiResult<object>> ConfirmOrderAsync(int orderId)
+        => SendAsync<object>(HttpMethod.Post, $"api/orders/{orderId}/confirm");
     // ---------------- Internos ----------------
 
     private HttpRequestMessage BuildRequest(HttpMethod method, string url, object? body)
