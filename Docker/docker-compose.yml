@@ -38,5 +38,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+      web:
+    build:
+      context: ..
+      dockerfile: TiendaBarrio.Web/Dockerfile
+    container_name: tiendabarrio_web
+    ports:
+      - "5142:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ApiBaseUrl: http://api:8080/
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   postgres_data:
