@@ -27,7 +27,6 @@ services:
     ports:
       - "5222:8080"
     environment:
-      # Development para que Swagger esté disponible en http://localhost:5222/swagger
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB:-tiendabarrio};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
       Jwt__Key: ${JWT_KEY:-clave-solo-para-desarrollo-local-cambiar-en-produccion-0123456789}
@@ -38,7 +37,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-       web:
+  web:
     build:
       context: ..
       dockerfile: TiendaBarrio.Web/Dockerfile
