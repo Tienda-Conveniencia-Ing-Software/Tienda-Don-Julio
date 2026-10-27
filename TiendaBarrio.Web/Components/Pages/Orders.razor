@@ -7,10 +7,10 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3> Panel de Pedidos</h3>
+        <h3>📋 Panel de Pedidos</h3>
         @if (pendingCount > 0)
         {
-            <span class="badge bg-danger fs-6"> @pendingCount pedidos pendientes</span>
+            <span class="badge bg-danger fs-6">🔔 @pendingCount pedidos pendientes</span>
         }
     </div>
     <hr />
@@ -63,16 +63,22 @@
                                 <button class="btn btn-sm btn-primary" @onclick="() => AdvanceStatus(order)">
                                     ▶ Pasar a En Proceso
                                 </button>
+                                <button class="btn btn-sm btn-danger ms-2" @onclick="() => CancelOrder(order.Id)">
+                                    ✖ Cancelar
+                                </button>
                             }
                             else if (order.Status == "EnProceso")
                             {
-                                <button class="btn btn-sm btn-success" @onclick="() => AdvanceStatus(order)">
-                                    ✔ Marcar Completado
+                                <button class="btn btn-sm btn-success" @onclick="() => ConfirmOrder(order.Id)">
+                                    ✔ Confirmar Venta
+                                </button>
+                                <button class="btn btn-sm btn-danger ms-2" @onclick="() => CancelOrder(order.Id)">
+                                    ✖ Cancelar
                                 </button>
                             }
                             else
                             {
-                                <span class="text-muted">Completado</span>
+                                <span class="text-muted">@order.Status</span>
                             }
                         </td>
                     </tr>
@@ -123,10 +129,37 @@
 
     private async Task AdvanceStatus(OrderResponse order)
     {
-        // Usamos los nombres exactos del enum: EnProceso y Completado
-        string newStatus = order.Status == "Pendiente" ? "EnProceso" : "Completado";
+        // Solo avanza a EnProceso
+        string newStatus = "EnProceso";
         
         var result = await Api.UpdateOrderStatusAsync(order.Id, newStatus);
+        if (result.Ok)
+        {
+            await LoadOrdersAsync();
+        }
+        else
+        {
+            errorMessage = result.Error;
+        }
+    }
+
+    private async Task ConfirmOrder(int orderId)
+    {
+        // Llama al endpoint /confirm que descuenta stock y crea la venta
+        var result = await Api.ConfirmOrderAsync(orderId);
+        if (result.Ok)
+        {
+            await LoadOrdersAsync();
+        }
+        else
+        {
+            errorMessage = result.Error;
+        }
+    }
+
+    private async Task CancelOrder(int orderId)
+    {
+        var result = await Api.UpdateOrderStatusAsync(orderId, "Cancelado");
         if (result.Ok)
         {
             await LoadOrdersAsync();
