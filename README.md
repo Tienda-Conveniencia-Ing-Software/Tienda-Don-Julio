@@ -1,192 +1,145 @@
 # Tienda Don Julio
 
-Sistema de gestión para una tienda de barrio, desarrollado en **.NET 10** con arquitectura por capas:
-una **API REST** con autenticación JWT, una **web en Blazor** que la consume, persistencia con
-**Entity Framework Core** sobre **PostgreSQL 16**, y una **app de consola** original que comparte la misma lógica de negocio.
-
-Proyecto de Ingeniería de Software (Sprint 4).
-
-## Arquitectura
-
-```
-  Blazor (TiendaBarrio.Web)  ──HTTP/JSON──▶  API REST (Api)  ──▶  Services (Core)  ──▶  Repositorios  ──▶  PostgreSQL
-        http://localhost:5142                http://localhost:5222        (TiendaBarrio/)                      localhost:5432
-                                                                                  ▲
-                                                   App de consola ────────────────┘
-```
-
-| Proyecto | Carpeta | Qué hace |
-|---|---|---|
-| Core, Persistence y consola | `TiendaBarrio/` | Modelos, servicios de negocio, repositorios, `AppDbContext` y la app de consola |
-| API | `Api/` | Controllers, DTOs, JWT y Swagger |
-| Web | `TiendaBarrio.Web/` | Interfaz Blazor; solo habla con la API por HTTP (no toca la base de datos) |
-| Pruebas | `TiendaBarrio.Tests/` | Pruebas unitarias (xUnit) del dominio |
-| Base de datos | `database/` | Scripts SQL de inicialización y modelo relacional |
-| Docker | `Docker/` | `docker-compose.yml` (PostgreSQL + API) |
-| Documentación | `docs/` | Contratos de la API y colección de Postman |
+Sistema de gestión de una tienda de barrio desarrollado con .NET 10, Blazor, API REST, Entity Framework Core y PostgreSQL 16. La base de datos se inicializa con scripts SQL nativos.
 
 ## Requisitos
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Git
+- .NET 10 SDK para ejecutar la solución y las pruebas.
+- Docker Desktop con Docker Compose.
+- Git.
 
-## Cómo ejecutar
+## Estructura principal
 
-### 1. Levantar la base de datos y la API (Docker)
+- `TiendaBarrio/`: modelos, servicios, persistencia y aplicación de consola heredada.
+- `Api/`: API REST, autenticación JWT y controladores.
+- `TiendaBarrio.Web/`: interfaz web Blazor.
+- `TiendaBarrio.Tests/`: pruebas automatizadas con xUnit.
+- `database/init/01-schema.sql`: esquema de PostgreSQL.
+- `database/init/02-seed.sql`: datos iniciales de desarrollo.
+- `database/tests/validate-schema.sql`: validación de humo del esquema y el seed.
+- `Docker/docker-compose.yml`: servicios `db`, `api` y `web`.
+
+## Arranque completo con Docker
+
+Desde la raíz del repositorio:
 
 ```bash
 cd Docker
-docker compose up --build
 ```
 
-La primera vez, PostgreSQL ejecuta automáticamente los scripts de `database/init/`
-(crean las tablas y cargan los datos de prueba). La API queda en:
-
-- Swagger: http://localhost:5222/swagger
-- PostgreSQL: `localhost:5432` (base `tiendabarrio`, usuario `postgres`, clave `postgres`)
-
-### 2. Levantar la web (en otra terminal, desde la raíz del repo)
+Si es la primera ejecución, crea un archivo `.env` a partir de `.env.example` y configura los valores locales de desarrollo. Después ejecuta:
 
 ```bash
-dotnet run --project TiendaBarrio.Web
+docker compose up --build -d
+docker compose ps
 ```
 
-Abrir http://localhost:5142 (si no se abre solo).
+Servicios publicados en el equipo local:
 
-> La web todavía no está incluida en el `docker-compose.yml`; se ejecuta con `dotnet run`.
+- Web Blazor: http://localhost:5142
+- API: http://localhost:5222
+- Swagger en entorno de desarrollo: http://localhost:5222/swagger
+- PostgreSQL: `localhost:5432`
 
-### 3. (Opcional) App de consola
+Compose ejecuta `database/init/01-schema.sql` y `database/init/02-seed.sql` automáticamente únicamente cuando PostgreSQL inicializa un volumen vacío. Si los scripts se modifican después de haber creado el volumen, no se vuelven a ejecutar solos.
+
+Para ver los logs:
 
 ```bash
-dotnet run --project TiendaBarrio/Tienda-Don-Julio.csproj
+docker compose logs --tail=100 db api web
 ```
 
-Usa la misma base de PostgreSQL del contenedor (`localhost:5432`).
-
-### Ejecutar la API sin Docker para la API
-
-Con la base de datos del compose arriba (`docker compose up db`), puedes correr la API desde el IDE o con:
+Para detener los servicios sin borrar los datos:
 
 ```bash
-dotnet run --project Api
+docker compose down
 ```
-
-En desarrollo usa `Api/appsettings.Development.json` (apunta a `localhost:5432`, base `tiendabarrio`).
-**Todo el equipo usa la base del contenedor**; no se necesita un PostgreSQL local propio.
-
-## Usuarios de prueba
-
-| Correo | Contraseña | Rol |
-|---|---|---|
-| `admin@donjulio.com` | `admin123` | Trabajador |
-| `carlos@test.com` | `test123` | Trabajador |
-| `juan@test.com` | `test123` | Cliente |
-| `maria@test.com` | `test123` | Cliente |
-| `ana@test.com` | `test123` | Cliente |
-| `pedro@test.com` | `test123` | Cliente |
-
-Son solo para desarrollo. Los clientes nuevos se registran en `/registro`.
-
-## Base de datos
-
-El esquema y los datos iniciales **no se definen en C#**: viven en scripts SQL.
-
-| Archivo | Contenido |
-|---|---|
-| `database/init/01-schema.sql` | Tablas, llaves foráneas, restricciones e índices |
-| `database/init/02-seed.sql` | Cuentas (hash BCrypt), productos, ventas, pedidos y caja de ejemplo |
-| `database/modelo-relacional.md` | Descripción y diagrama del modelo |
-
-EF Core solo **mapea** las entidades a esas tablas (`TiendaBarrio/Persistence/Data/AppDbContext.cs`).
-Si cambias una tabla o columna, cambia el script **y** el mapeo, y actualiza `modelo-relacional.md`.
 
 ### Reiniciar la base de datos desde cero
 
-PostgreSQL solo ejecuta los scripts cuando el volumen está vacío, por eso hay que borrarlo:
+> **Advertencia:** `down -v` elimina el volumen de PostgreSQL y todos los datos almacenados en él. Úsalo solamente en un entorno local de pruebas.
+
+Desde la carpeta `Docker/`:
 
 ```bash
-cd Docker
 docker compose down -v
-docker compose up --build
+docker compose up --build -d
+docker compose ps
 ```
 
-Para revisar la base directamente:
+## Pruebas automatizadas
+
+Desde la raíz del repositorio:
 
 ```bash
-docker exec -it tiendabarrio_db psql -U postgres -d tiendabarrio -c "\dt"
+dotnet restore TiendaBarrio.sln
+dotnet test TiendaBarrio.sln
 ```
 
-## Reglas del negocio
+Las pruebas de `TiendaBarrio.Tests` comprueban reglas de entidades y el contrato entre nombres de tablas/columnas de EF Core y el esquema SQL. Estas pruebas no sustituyen las pruebas de integración contra PostgreSQL.
 
-- El cliente crea un **pedido** (`Pendiente`); no se toca inventario ni caja.
-- Cuando el trabajador lo **confirma**, en una sola transacción se valida y descuenta el stock,
-  se crea la **venta** con su detalle, se registra el **ingreso** en caja y el pedido pasa a `Completado`.
-- Estados del pedido: `Pendiente`, `EnProceso`, `Completado`, `Cancelado`.
-- Roles: `Cliente` (compra y consulta sus pedidos) y `Trabajador` (inventario, pedidos, finanzas y reportes).
+## Validar la base de datos real
 
-## Endpoints de la API
-
-Documentación interactiva en `/swagger`. Se autentica con `Authorization: Bearer <token>` (el token sale de `POST /api/auth/login`).
-
-| Método | Ruta | Acceso |
-|---|---|---|
-| POST | `/api/auth/login` | Público |
-| POST | `/api/auth/register` | Público |
-| GET | `/api/inventory`, `/api/inventory/{id}` | Público |
-| GET | `/api/inventory/low-stock` | Trabajador |
-| POST / PUT / DELETE | `/api/inventory`, `/api/inventory/{id}` | Trabajador |
-| POST | `/api/inventory/{id}/stock` | Trabajador (cantidad positiva aumenta, negativa disminuye) |
-| POST | `/api/orders` | Autenticado (el cliente sale del token) |
-| GET | `/api/orders/mine` | Autenticado |
-| GET | `/api/orders`, `/api/orders/pending-count` | Trabajador |
-| POST | `/api/orders/{id}/confirm` | Trabajador |
-| PUT | `/api/orders/{id}/status` | Trabajador |
-| GET | `/api/finance/balance`, `/api/finance/movements` | Trabajador |
-| POST | `/api/finance/movements` | Trabajador |
-| GET | `/api/reports/top-products` | Trabajador |
-
-Contratos detallados: `docs/api-contratos.md`. Colección de Postman: `docs/postman/`.
-
-## Páginas de la web
-
-| Ruta | Para quién |
-|---|---|
-| `/` | Todos |
-| `/login`, `/registro` | Todos |
-| `/catalogo` | Cliente (catálogo, carrito y checkout) |
-| `/mis-pedidos` | Cliente |
-| `/inventario` | Lectura para todos; edición para Trabajador |
-| `/orders` | Trabajador (panel de pedidos con aviso de pendientes) |
-| `/finanzas`, `/top-products` | Trabajador |
-
-## Pruebas
+Con Compose arriba, desde la carpeta `Docker/` ejecuta el script de validación:
 
 ```bash
-dotnet test
+docker exec -i tiendabarrio_db psql -v ON_ERROR_STOP=1 -U postgres -d tiendabarrio < ../database/tests/validate-schema.sql
 ```
 
-Las pruebas unitarias cubren las reglas del dominio (productos, ventas, movimientos de caja,
-cuentas, pedidos y carrito) y comprueban que los estados, tipos y roles de C# coinciden con los
-`CHECK` de `database/init/01-schema.sql`.
+Si en `Docker/.env` cambiaste `POSTGRES_USER` o `POSTGRES_DB`, sustituye `postgres` y `tiendabarrio` por los valores configurados. El script verifica que existan las tablas principales, algunas columnas importantes y datos iniciales. No modifica datos.
 
-## Variables de entorno
+También puedes listar tablas manualmente:
 
-| Variable | Dónde | Para qué |
-|---|---|---|
-| `ConnectionStrings__DefaultConnection` | API | Cadena de conexión a PostgreSQL |
-| `Jwt__Key` | API | Clave secreta del JWT (mínimo 32 caracteres) |
-| `Api__BaseUrl` | Web | URL de la API (por defecto `http://localhost:5222/`) |
-| `POSTGRES_PASSWORD`, `JWT_KEY` | `Docker/.env` | Valores para el compose (copia `Docker/.env.example`) |
+```bash
+docker exec -it tiendabarrio_db psql -U postgres -d tiendabarrio -c "\\dt"
+```
 
-En desarrollo funcionan sin configurar nada. **Para cualquier entorno real, cambia las contraseñas y la clave JWT.**
+## Flujo de negocio que debe verificarse
 
-## Problemas frecuentes
+1. Un cliente se registra o inicia sesión.
+2. El cliente consulta el catálogo y crea un pedido.
+3. El pedido queda `Pendiente`; crear el pedido no debe descontar stock ni registrar un ingreso.
+4. Un trabajador confirma el pedido con `POST /api/orders/{id}/confirm`.
+5. La confirmación debe realizar, en una sola transacción, el descuento de stock, la creación de la venta y sus detalles, el registro del ingreso en caja y el cambio del pedido a `Completado`.
+6. Si la confirmación falla, no deben persistir cambios parciales. Confirmar nuevamente el mismo pedido no debe crear ventas o ingresos duplicados.
+7. El historial de pedidos y el reporte de productos más vendidos deben reflejar la operación.
 
-| Síntoma | Solución |
-|---|---|
-| La API da error de tabla inexistente | La base se creó sin los scripts: `docker compose down -v` y vuelve a levantar |
-| `port is already allocated` en 5432 | Hay otro PostgreSQL local ocupando el puerto; deténlo o cambia el puerto en el compose |
-| La web dice "No se pudo conectar con la API" | Verifica que `docker ps` muestre `tiendabarrio_api` y que http://localhost:5222/swagger abra |
-| Al recargar la web se pierde la sesión | Es una limitación conocida: hay que iniciar sesión otra vez |
-| La terminal queda en `(END)` o `:` | Presiona `q` |
+## Prueba de integración manual (API)
+
+Con los tres servicios activos:
+
+1. Abre Swagger en `http://localhost:5222/swagger` o importa `docs/postman/TiendaDonJulio.postman_collection.json` en Postman.
+2. Inicia sesión con una cuenta de desarrollo que exista en el seed y copia el JWT.
+3. Autoriza las peticiones protegidas con `Authorization: Bearer <token>`.
+4. Consulta inventario y anota el stock de un producto de prueba.
+5. Inicia sesión como cliente y crea un pedido usando `POST /api/orders` con productos existentes y cantidades pequeñas.
+6. Comprueba que el pedido se creó como `Pendiente` y que todavía no se descontó el stock.
+7. Inicia sesión como trabajador y llama a `POST /api/orders/{id}/confirm` con el ID del pedido recién creado.
+8. Consulta nuevamente el inventario, los pedidos, los movimientos de caja y `/api/reports/top-products`.
+9. Confirma que el stock bajó por la cantidad comprada, existe una venta, hay un ingreso por el total de la venta y el pedido está `Completado`.
+10. Intenta confirmar otra vez el mismo pedido: debe rechazarse sin duplicar venta ni ingreso.
+11. Repite con una cantidad superior al stock disponible: la confirmación debe fallar sin dejar cambios parciales.
+
+Haz esta prueba en una base local de desarrollo. No uses pedidos reales ni datos de producción. Los nombres exactos de campos del JSON se deben contrastar con los DTO actuales y `docs/api-contratos.md`.
+
+## Seguridad y configuración
+
+- No subas `Docker/.env`, claves JWT reales ni contraseñas reales al repositorio.
+- `Docker/.env.example` es una plantilla de desarrollo; configura valores locales propios.
+- Las credenciales de seed son únicamente para pruebas locales y no deben reutilizarse en producción.
+- Swagger debe estar limitado al entorno de desarrollo si así lo exige la política de despliegue.
+- Configura CORS con los orígenes autorizados antes de desplegar.
+
+## Documentación de API
+
+- Contratos: `docs/api-contratos.md`.
+- Colección Postman: `docs/postman/TiendaDonJulio.postman_collection.json`.
+- Verifica ambos artefactos contra los controladores y DTO actuales antes de cada entrega.
+
+## Solución de problemas
+
+- **Falta una tabla:** revisa `docker compose logs db`. Si el volumen se creó antes de añadir los scripts, reinicia la BD local con `docker compose down -v` y vuelve a levantarla.
+- **La API no conecta con PostgreSQL:** verifica que `db` esté healthy y que la cadena de conexión dentro de Compose use `Host=db`.
+- **El puerto 5432, 5222 o 5142 está ocupado:** detén el servicio que lo utiliza o cambia el mapeo de puertos.
+- **La web no conecta con la API:** revisa los logs de `web` y `api`; dentro de Compose, la web debe usar la dirección interna de la API configurada en `Api__BaseUrl`.
+- **Se pierde la sesión al recargar:** verifica que la persistencia del JWT en el navegador esté implementada y probada; no des por resuelto el problema solo porque el login funciona.
