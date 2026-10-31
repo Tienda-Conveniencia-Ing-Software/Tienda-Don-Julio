@@ -13,7 +13,7 @@ COPY TiendaBarrio/ TiendaBarrio/
 RUN dotnet publish "Api/Api.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
 # ---------- Etapa 2: imagen final liviana ----------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 COPY --from=build /app/publish .
 

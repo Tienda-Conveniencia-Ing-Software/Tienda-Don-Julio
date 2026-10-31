@@ -4,115 +4,147 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
-<div>
-	<div class="top-row ps-3 navbar navbar-dark">
-		<div class="container-fluid">
-			<a class="navbar-brand" href="">Tienda Don Julio</a>
-		</div>
-	</div>
+<div class="d-flex flex-column h-100" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border-right: 1px solid rgba(255,255,255,0.8); min-height: 100vh;">
+    
+    <!-- HEADER BRAND & TOGGLE BOTÓN UNIFICADO EN CUADRO AMARILLO -->
+    <div class="p-3 d-flex align-items-center justify-content-between mb-2 border-bottom border-white">
+        <div class="d-flex align-items-center overflow-hidden w-100">
+            <button class="btn bg-warning rounded p-0 me-2 shadow-sm text-dark d-flex align-items-center justify-content-center flex-shrink-0 border-0" 
+                    style="width: 38px; height: 38px;" 
+                    @onclick="OnToggleCollapse" 
+                    title="@(IsCollapsed ? "Desplegar menú" : "Plegar menú")">
+                <i class="bi @(IsCollapsed ? "bi-chevron-right" : "bi-shop") fs-5"></i>
+            </button>
+            <h5 class="fw-bolder mb-0 text-dark brand-text text-nowrap" style="letter-spacing: -0.5px;">Tienda Don Julio</h5>
+        </div>
+        @if (!IsCollapsed)
+        {
+            <button class="btn btn-sm btn-light border-0 text-secondary p-1" @onclick="OnToggleCollapse" title="Plegar menú">
+                <i class="bi bi-chevron-left fs-6"></i>
+            </button>
+        }
+    </div>
 
-	<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    <ul class="nav flex-column mb-auto px-2">
+        <li class="nav-item mb-1">
+            <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="" Match="NavLinkMatch.All">
+                <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                    <i class="bi bi-house-door fs-5 text-secondary"></i>
+                </span>
+                <span class="nav-text text-nowrap">Dashboard</span>
+            </NavLink>
+        </li>
+        <li class="nav-item mb-1">
+            <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="catalogo">
+                <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                    <i class="bi bi-cart3 fs-5 text-secondary"></i>
+                </span>
+                <span class="nav-text text-nowrap me-auto">Catálogo</span>
+                @if (Cart.Count > 0)
+                {
+                    <span class="badge bg-warning text-dark rounded-pill nav-text">@Cart.Count</span>
+                }
+            </NavLink>
+        </li>
+        
+        @if (Session.IsLoggedIn)
+        {
+            <li class="nav-item mb-1">
+                <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="mis-pedidos">
+                    <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                        <i class="bi bi-bag-check fs-5 text-secondary"></i>
+                    </span>
+                    <span class="nav-text text-nowrap">Mis Pedidos</span>
+                </NavLink>
+            </li>
+        }
 
-	<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-		<nav class="flex-column">
+        @if (Session.IsWorker)
+        {
+            <li class="px-3 mt-3 mb-2 text-uppercase small fw-bold text-muted section-header" style="letter-spacing: 1px;">Gestión</li>
+            
+            <li class="nav-item mb-1">
+                <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="inventario">
+                    <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                        <i class="bi bi-box-seam fs-5 text-secondary"></i>
+                    </span>
+                    <span class="nav-text text-nowrap">Inventario</span>
+                </NavLink>
+            </li>
+            <li class="nav-item mb-1">
+                <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="orders">
+                    <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                        <i class="bi bi-card-checklist fs-5 text-secondary"></i>
+                    </span>
+                    <span class="nav-text text-nowrap">Órdenes</span>
+                </NavLink>
+            </li>
+            <li class="nav-item mb-1">
+                <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="finanzas">
+                    <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                        <i class="bi bi-wallet2 fs-5 text-secondary"></i>
+                    </span>
+                    <span class="nav-text text-nowrap">Finanzas</span>
+                </NavLink>
+            </li>
+            <li class="nav-item mb-1">
+                <NavLink class="nav-link px-3 py-2 rounded-3 text-dark fw-medium d-flex align-items-center" href="top-products">
+                    <span class="d-inline-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 24px;">
+                        <i class="bi bi-graph-up-arrow fs-5 text-secondary"></i>
+                    </span>
+                    <span class="nav-text text-nowrap">Más Vendidos</span>
+                </NavLink>
+            </li>
+        }
+    </ul>
 
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-					<span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Inicio
-				</NavLink>
-			</div>
-
-			<!-- Portal Cliente / Compras -->
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="catalogo">
-					<span class="bi bi-cart-fill-nav-menu" aria-hidden="true"></span> Catálogo
-					@if (Cart.Count > 0)
-					{
-						<span class="badge bg-warning text-dark ms-auto">@Cart.Count</span>
-					}
-				</NavLink>
-			</div>
-
-			@if (Session.IsLoggedIn)
-			{
-				<div class="nav-item px-3">
-					<NavLink class="nav-link" href="mis-pedidos">
-						<span class="bi bi-bag-check-fill-nav-menu" aria-hidden="true"></span> Mis Pedidos
-					</NavLink>
-				</div>
-			}
-
-			<!-- Panel de Control e Inventario -->
-			<div class="nav-item px-3">
-				<NavLink class="nav-link" href="inventario">
-					<span class="bi bi-box-seam-fill-nav-menu" aria-hidden="true"></span> Inventario
-				</NavLink>
-			</div>
-
-			@if (Session.IsWorker)
-			{
-				<div class="nav-item px-3">
-					<NavLink class="nav-link" href="finanzas">
-						<span class="bi bi-cash-stack-nav-menu" aria-hidden="true"></span> Finanzas
-					</NavLink>
-				</div>
-
-				<!--  Solo los trabajadores pueden ver el reporte de más vendidos -->
-				<div class="nav-item px-3">
-					<NavLink class="nav-link" href="top-products">
-						<span class="bi bi-graph-up" aria-hidden="true"></span> Más Vendidos
-					</NavLink>
-				</div>
-
-				<div class="nav-item px-3">
-    				<NavLink class="nav-link" href="orders">
-        				<span class="bi bi-list-check" aria-hidden="true"></span> Pedidos
-    				</NavLink>
-				</div>
-			}
-
-			<!-- Estado de Sesión -->
-			@if (Session.IsLoggedIn)
-			{
-				<div class="nav-item px-3 text-white-50 small mt-3 border-top pt-2">
-					@Session.Nombre<br />
-					<span class="badge bg-secondary">@Session.Role</span>
-				</div>
-				<div class="nav-item px-3 mt-2">
-					<button class="btn btn-sm btn-outline-light w-100" @onclick="CerrarSesion">Cerrar sesión</button>
-				</div>
-			}
-			else
-			{
-				<div class="nav-item px-3 mt-2">
-					<NavLink class="nav-link" href="login">
-						<span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Iniciar sesión
-					</NavLink>
-				</div>
-
-			}
-		</nav>
-	</div>
+    <div class="p-3 mt-auto border-top border-white">
+        @if (Session.IsLoggedIn)
+        {
+            <div class="d-flex align-items-center p-2 rounded-3 bg-white bg-opacity-50 shadow-sm mb-2 user-info">
+                <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center me-2 flex-shrink-0" style="width: 32px; height: 32px;">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="fw-bold text-dark small text-truncate">@Session.Nombre</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">@Session.Role</div>
+                </div>
+            </div>
+            <button class="btn btn-light w-100 border text-danger fw-semibold d-flex align-items-center justify-content-center shadow-sm" @onclick="CerrarSesion" title="Cerrar Sesión">
+                <i class="bi bi-box-arrow-left"></i>
+                <span class="nav-text ms-2">Salir</span>
+            </button>
+        }
+        else
+        {
+            <NavLink class="btn btn-primary w-100 fw-semibold shadow-sm d-flex align-items-center justify-content-center" href="login">
+                <i class="bi bi-person-badge"></i>
+                <span class="nav-text ms-2">Ingresar</span>
+            </NavLink>
+        }
+    </div>
 </div>
 
+<style>
+    .nav-link.active {
+        background-color: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        color: #4f46e5 !important;
+    }
+    .nav-link.active i {
+        color: #4f46e5 !important;
+    }
+    .nav-link:hover:not(.active) {
+        background-color: rgba(255,255,255,0.5);
+    }
+</style>
+
 @code {
-	protected override void OnInitialized()
-	{
-		Session.Changed += OnStateChanged;
-		Cart.OnChange += OnStateChanged;
-	}
+    [Parameter] public bool IsCollapsed { get; set; }
+    [Parameter] public EventCallback OnToggleCollapse { get; set; }
 
-	private void OnStateChanged() => InvokeAsync(StateHasChanged);
-
-	private void CerrarSesion()
-	{
-		Api.Logout();
-		Navigation.NavigateTo("login");
-	}
-
-	public void Dispose()
-	{
-		Session.Changed -= OnStateChanged;
-		Cart.OnChange -= OnStateChanged;
-	}
+    protected override void OnInitialized() { Session.Changed += OnStateChanged; Cart.OnChange += OnStateChanged; }
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
+    private void CerrarSesion() { Api.Logout(); Navigation.NavigateTo("login"); }
+    public void Dispose() { Session.Changed -= OnStateChanged; Cart.OnChange -= OnStateChanged; }
 }

@@ -1,0 +1,53 @@
+@using TiendaBarrio.Web.Services
+@inject ToastService ToastService
+@implements IDisposable
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+    @foreach (var toast in _toasts)
+    {
+        <div class="toast show align-items-center @toast.CssClass border-0 mb-2 shadow-lg" role="alert">
+            <div class="d-flex">
+                <div class="toast-body fw-medium">@toast.Message</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => RemoveToast(toast)"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private class ToastItem
+    {
+        public string Message { get; set; } = string.Empty;
+        public string CssClass { get; set; } = string.Empty;
+    }
+
+    private readonly List<ToastItem> _toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+    }
+
+    private void ShowToast(string message, string cssClass)
+    {
+        var toast = new ToastItem { Message = message, CssClass = cssClass };
+        _toasts.Add(toast);
+        InvokeAsync(StateHasChanged);
+
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            RemoveToast(toast);
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void RemoveToast(ToastItem toast)
+    {
+        _toasts.Remove(toast);
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+    }
+}

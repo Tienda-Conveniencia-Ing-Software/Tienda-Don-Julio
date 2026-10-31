@@ -1,15 +1,83 @@
 @page "/"
 @inject AuthSession Session
 
-<PageTitle>Tienda Don Julio</PageTitle>
+<PageTitle>Inicio - Tienda Don Julio</PageTitle>
 
-<h1>Tienda Don Julio</h1>
+<div class="dashboard-bg">
+    <div class="container-fluid">
+        <!-- Hero Section -->
+        <div class="glass-card p-5 mb-4 text-center position-relative overflow-hidden" style="border-top: 4px solid #f59e0b;">
+            <div class="position-absolute opacity-10 top-0 start-0 w-100 h-100" style="background-image: radial-gradient(circle at 20% 150%, #4f46e5 0%, transparent 50%); z-index: 0;"></div>
+            
+            <div class="position-relative" style="z-index: 1;">
+                <h1 class="display-5 fw-bolder text-dark mb-3">Bienvenido a <span style="color: #4f46e5;">Tienda Don Julio</span></h1>
+                <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                    Plataforma inteligente de gestión. Selecciona una acción rápida para comenzar a administrar tus productos o realizar compras.
+                </p>
+                
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a href="catalogo" class="btn btn-primary-modern px-4 py-2">
+                        <i class="bi bi-cart3 me-2"></i> Ir al Catálogo
+                    </a>
+                    @if (!Session.IsLoggedIn)
+                    {
+                        <a href="login" class="btn btn-light border px-4 py-2 text-dark shadow-sm">
+                            <i class="bi bi-person me-2"></i> Iniciar Sesión
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
 
-@if (Session.IsLoggedIn)
-{
-    <p class="lead">Hola, <strong>@Session.Nombre</strong>. Usa el menú de la izquierda para continuar.</p>
-}
-else
-{
-    <p class="lead">Consulta el catálogo de productos o <a href="login">inicia sesión</a> para gestionar el inventario.</p>
-}
+        @if (Session.IsWorker)
+        {
+            <h5 class="fw-bold text-dark mb-3">Accesos Rápidos de Administración</h5>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <a href="orders" class="text-decoration-none">
+                        <div class="glass-card p-4 h-100 d-flex align-items-center transition-all hover-lift">
+                            <div class="metric-icon-circle bg-warning bg-opacity-10 text-warning me-3">
+                                <i class="bi bi-card-checklist fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Gestión de Pedidos</h5>
+                                <p class="text-muted small mb-0">Revisa y despacha las órdenes pendientes.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="inventario" class="text-decoration-none">
+                        <div class="glass-card p-4 h-100 d-flex align-items-center transition-all hover-lift">
+                            <div class="metric-icon-circle bg-primary bg-opacity-10 text-primary me-3">
+                                <i class="bi bi-box-seam fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Inventario</h5>
+                                <p class="text-muted small mb-0">Actualiza el stock y los precios actuales.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="finanzas" class="text-decoration-none">
+                        <div class="glass-card p-4 h-100 d-flex align-items-center transition-all hover-lift">
+                            <div class="metric-icon-circle bg-success bg-opacity-10 text-success me-3">
+                                <i class="bi bi-wallet2 fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1">Caja y Finanzas</h5>
+                                <p class="text-muted small mb-0">Visualiza ingresos, gastos y balance.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+</style>

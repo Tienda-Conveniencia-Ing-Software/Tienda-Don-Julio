@@ -1,35 +1,27 @@
-﻿@inject AuthSession Session
+﻿@using TiendaBarrio.Web.Components.Shared
+@using TiendaBarrio.Web.Services
+@inject AuthSession Session
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="d-flex" style="min-height: 100vh; height: 100vh; overflow: hidden; background: linear-gradient(135deg, #e2eafc 0%, #edf2f7 100%);">
+    <!-- Sidebar con ancho dinámico -->
+    <div class="sidebar-container @(isCollapsed ? "sidebar-collapsed" : "")" style="width: @(isCollapsed ? "80px" : "260px"); flex-shrink: 0; z-index: 100; height: 100vh;">
+        <NavMenu IsCollapsed="isCollapsed" OnToggleCollapse="ToggleSidebar" />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+    <!-- Contenido Principal -->
+    <main class="flex-grow-1" style="overflow-y: auto; height: 100vh; overflow-x: hidden;">
+        @Body
     </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+<ToastContainer />
 
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private bool isCollapsed = false;
+
+    private void ToggleSidebar()
     {
-        if (firstRender)
-        {
-            await Session.InitializeAsync();
-            StateHasChanged();
-        }
+        isCollapsed = !isCollapsed;
     }
 }

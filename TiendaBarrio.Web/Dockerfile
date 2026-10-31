@@ -17,7 +17,7 @@ WORKDIR "/src/TiendaBarrio.Web"
 RUN dotnet publish "TiendaBarrio.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Etapa 2: Ejecutar
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "TiendaBarrio.Web.dll"]
