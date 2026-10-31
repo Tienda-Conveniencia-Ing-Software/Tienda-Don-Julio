@@ -1,0 +1,28 @@
+@if (IsVisible)
+{
+    <div class="modal fade show d-block bg-dark bg-opacity-50" tabindex="-1" style="z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0 rounded-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger">@Title</h5>
+                    <button type="button" class="btn-close" @onclick="OnCancel"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="mb-0 text-secondary">@Message</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary px-3" @onclick="OnCancel">Cancelar</button>
+                    <button type="button" class="btn btn-danger px-3" @onclick="OnConfirm">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Confirmar Acción";
+    [Parameter] public string Message { get; set; } = "¿Está seguro de realizar esta acción?";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

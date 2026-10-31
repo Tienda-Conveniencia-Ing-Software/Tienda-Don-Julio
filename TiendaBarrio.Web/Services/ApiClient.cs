@@ -4,13 +4,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-
 namespace TiendaBarrio.Web.Services;
 
-/// <summary>
-/// Único lugar donde la web habla con la API. Agrega el token JWT a cada petición
-/// y convierte los errores HTTP en mensajes legibles para mostrar en pantalla.
-/// </summary>
 public class ApiClient
 {
     private readonly HttpClient _http;
@@ -36,6 +31,9 @@ public class ApiClient
 
     public async void Logout() => await _session.ClearAsync();
 
+    public Task<ApiResult<bool>> RegisterAsync(string nombre, string email, string password, string cedula = "", string telefono = "")
+        => SendWithoutBodyWithDataAsync(HttpMethod.Post, "api/auth/register", new RegisterRequest { Nombre = nombre, Email = email, Password = password, Cedula = cedula, Telefono = telefono });
+
     // ---------------- Inventario ----------------
 
     public Task<ApiResult<List<ProductItem>>> GetProductsAsync()
@@ -43,6 +41,12 @@ public class ApiClient
 
     public Task<ApiResult<ProductItem>> CreateProductAsync(string name, double price, double purchasePrice, int stock)
         => SendAsync<ProductItem>(HttpMethod.Post, "api/inventory", new { name, price, purchasePrice, stock });
+
+    public Task<ApiResult<bool>> AddStockAsync(int productId, int quantity)
+        => SendWithoutBodyWithDataAsync(HttpMethod.Post, $"api/inventory/{productId}/stock", new { Quantity = quantity });
+
+    public Task<ApiResult<bool>> DeleteStockAsync(int productId, int quantity)
+        => SendAsync<bool>(HttpMethod.Post, $"api/inventory/{productId}/stock", new { quantity = -quantity });
 
     public Task<ApiResult<bool>> DeleteProductAsync(int id)
         => SendWithoutBodyAsync(HttpMethod.Delete, $"api/inventory/{id}");
@@ -68,12 +72,19 @@ public class ApiClient
     public Task<ApiResult<int>> GetPendingOrdersCountAsync()
         => SendAsync<int>(HttpMethod.Get, "api/orders/pending-count");
 
+    public Task<ApiResult<OrderResponse>> CreateOrderAsync(CreateOrderRequest order)
+        => SendAsync<OrderResponse>(HttpMethod.Post, "api/orders", order);
+
+    public Task<ApiResult<List<OrderResponse>>> GetMyOrdersAsync()
+        => SendAsync<List<OrderResponse>>(HttpMethod.Get, "api/orders/mine");
+
     public Task<ApiResult<bool>> UpdateOrderStatusAsync(int orderId, string newStatus)
         => SendWithoutBodyAsync(HttpMethod.Put, $"api/orders/{orderId}/status", new { NewStatus = newStatus });
 
     public Task<ApiResult<object>> ConfirmOrderAsync(int orderId)
         => SendAsync<object>(HttpMethod.Post, $"api/orders/{orderId}/confirm");
-    // ---------------- Internos ----------------
+
+    // ---------------- Helpers Internos ----------------
 
     private HttpRequestMessage BuildRequest(HttpMethod method, string url, object? body)
     {
@@ -125,7 +136,6 @@ public class ApiClient
             using var request = BuildRequest(method, url, body);
             using var response = await _http.SendAsync(request);
 
-            // Si la respuesta es exitosa, devolvemos true sin intentar leer el cuerpo
             return response.IsSuccessStatusCode
                 ? ApiResult<bool>.Success(true)
                 : ApiResult<bool>.Fail(await ReadErrorAsync(response));
@@ -140,12 +150,26 @@ public class ApiClient
         }
     }
 
+    private async Task<ApiResult<bool>> SendWithoutBodyWithDataAsync(HttpMethod method, string url, object body)
+    {
+        try
+        {
+            using var request = BuildRequest(method, url, body);
+            using var response = await _http.SendAsync(request);
+
+            return response.IsSuccessStatusCode
+                ? ApiResult<bool>.Success(true)
+                : ApiResult<bool>.Fail(await ReadErrorAsync(response));
+        }
+        catch (HttpRequestException) { return ApiResult<bool>.Fail(ConnectionError()); }
+        catch (TaskCanceledException) { return ApiResult<bool>.Fail("La API tardó demasiado en responder."); }
+    }
+
     private string ConnectionError()
         => $"No se pudo conectar con la API en {_http.BaseAddress}. ¿Está levantada (docker compose up)?";
 
     private static async Task<string> ReadErrorAsync(HttpResponseMessage response)
     {
-        // Mensaje por defecto según el código HTTP
         var message = response.StatusCode switch
         {
             HttpStatusCode.Unauthorized => "No autorizado: inicia sesión (tu sesión puede haber expirado).",
@@ -164,13 +188,11 @@ public class ApiClient
             var root = doc.RootElement;
             if (root.ValueKind != JsonValueKind.Object) return message;
 
-            // { "message": "..." }  (MessageDto de la API)
             if (root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.String)
             {
                 return msg.GetString() ?? message;
             }
 
-            // { "errors": { "Campo": ["error1", ...] } }  (validaciones)
             if (root.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Object)
             {
                 var list = errors.EnumerateObject()
@@ -182,45 +204,13 @@ public class ApiClient
                 if (list.Count > 0) return string.Join(" ", list);
             }
 
-            // { "title": "..." }  (ProblemDetails)
             if (root.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
             {
                 return title.GetString() ?? message;
             }
         }
-        catch (JsonException)
-        {
-            // el cuerpo no era JSON: se usa el mensaje por defecto
-        }
+        catch (JsonException) { }
 
         return message;
-    }
-    // ---------------- Autenticación Extendida ----------------
-
-    public Task<ApiResult<bool>> RegisterAsync(string nombre, string email, string password, string cedula = "", string telefono = "")
-        => SendWithoutBodyWithDataAsync(HttpMethod.Post, "api/auth/register", new RegisterRequest { Nombre = nombre, Email = email, Password = password, Cedula = cedula, Telefono = telefono });
-
-    // ---------------- Pedidos ----------------
-
-    public Task<ApiResult<OrderResponse>> CreateOrderAsync(CreateOrderRequest order)
-        => SendAsync<OrderResponse>(HttpMethod.Post, "api/orders", order);
-
-    public Task<ApiResult<List<OrderResponse>>> GetMyOrdersAsync()
-        => SendAsync<List<OrderResponse>>(HttpMethod.Get, "api/orders/mine");
-
-    // Método helper privado para POSTs que responden 200/201 OK sin cuerpo complejo
-    private async Task<ApiResult<bool>> SendWithoutBodyWithDataAsync(HttpMethod method, string url, object body)
-    {
-        try
-        {
-            using var request = BuildRequest(method, url, body);
-            using var response = await _http.SendAsync(request);
-
-            return response.IsSuccessStatusCode
-                ? ApiResult<bool>.Success(true)
-                : ApiResult<bool>.Fail(await ReadErrorAsync(response));
-        }
-        catch (HttpRequestException) { return ApiResult<bool>.Fail(ConnectionError()); }
-        catch (TaskCanceledException) { return ApiResult<bool>.Fail("La API tardó demasiado en responder."); }
     }
 }

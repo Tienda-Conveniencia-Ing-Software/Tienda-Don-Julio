@@ -1,107 +1,227 @@
 @page "/inventario"
 @implements IDisposable
+@using TiendaBarrio.Web.Models
+@using TiendaBarrio.Web.Services
 @inject ApiClient Api
 @inject AuthSession Session
+@inject ToastService Toast
 
 <PageTitle>Inventario - Tienda Don Julio</PageTitle>
 
-<h3>Catálogo de productos e inventario</h3>
+<style>
+    .dashboard-bg { background-color: #f8fafc; min-height: 100vh; padding-bottom: 2rem; }
+    .glass-card { background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    .modern-input { border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 0.6rem 1rem; background-color: #f8fafc; }
+    .modern-input:focus { background-color: #ffffff; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); outline: none; }
+    .btn-modern { border-radius: 0.75rem; font-weight: 600; padding: 0.6rem 1.2rem; border: none; transition: all 0.2s; }
+    .btn-primary-modern { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
+    
+    .table-modern { border-collapse: separate; border-spacing: 0 0.5rem; margin-top: -0.5rem; }
+    .table-modern th { background-color: transparent; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; border: none; }
+    .table-modern tbody tr { background-color: #ffffff; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); border-radius: 0.75rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .table-modern tbody tr:hover { background-color: #f8fafc; box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08); transform: translateY(-2px); z-index: 10; position: relative; }
+    .table-modern td { border: none; padding: 1rem; vertical-align: middle; }
+    .table-modern td:first-child { border-top-left-radius: 0.75rem; border-bottom-left-radius: 0.75rem; }
+    .table-modern td:last-child { border-top-right-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @errorMessage
-        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+    .badge-soft-success { background-color: #d1fae5; color: #065f46; font-weight: 600; padding: 0.4em 0.8em; border-radius: 2rem; }
+    .badge-soft-warning { background-color: #fef3c7; color: #92400e; font-weight: 600; padding: 0.4em 0.8em; border-radius: 2rem; }
+    .badge-soft-danger { background-color: #fee2e2; color: #991b1b; font-weight: 600; padding: 0.4em 0.8em; border-radius: 2rem; }
+    .badge-soft-primary { background-color: #e0e7ff; color: #3730a3; font-weight: 600; padding: 0.4em 0.8em; border-radius: 2rem; }
+
+    .action-btn { border-radius: 0.5rem; padding: 0.35rem 0.75rem; font-size: 0.85rem; font-weight: 600; border: none; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s; }
+    .action-btn.stock { background-color: #e0e7ff; color: #4f46e5; }
+    .action-btn.stock:hover { background-color: #4f46e5; color: white; }
+    .action-btn.delete { background-color: #fee2e2; color: #ef4444; }
+    .action-btn.delete:hover { background-color: #ef4444; color: white; }
+</style>
+
+<div class="dashboard-bg pt-4">
+    <div class="container-fluid px-4">
+        
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bolder mb-1" style="color: #0f172a; letter-spacing: -0.025em;">Inventario</h2>
+                <p class="text-muted mb-0" style="font-size: 0.95rem;">Catálogo general y control de existencias en tiempo real.</p>
+            </div>
+            @if (Session.IsWorker)
+            {
+                <span class="badge badge-soft-primary shadow-sm"><i class="bi bi-shield-check me-1"></i> Modo Administrador</span>
+            }
+        </div>
+
+        @if (Session.IsWorker)
+        {
+            <div class="glass-card p-4 mb-4">
+                <h6 class="fw-bold mb-3 text-secondary"><i class="bi bi-box-seam me-2 text-primary"></i>Registrar Nuevo Producto</h6>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold text-muted mb-1">Nombre</label>
+                        <input class="form-control modern-input" placeholder="Ej. Arroz 1kg" @bind="newProductName" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">Precio Venta</label>
+                        <input type="number" class="form-control modern-input" placeholder="0" @bind="newProductPrice" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">Costo Compra</label>
+                        <input type="number" class="form-control modern-input" placeholder="0" @bind="newProductPurchasePrice" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">Stock Inicial</label>
+                        <input type="number" class="form-control modern-input" placeholder="0" @bind="newProductStock" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-modern btn-primary-modern w-100" @onclick="RegistrarProducto" disabled="@isBusy">
+                            <i class="bi bi-plus-lg me-1"></i> Añadir Producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="position-relative" style="width: 300px;">
+                <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 1rem; transform: translateY(-50%);"></i>
+                <input type="text" class="form-control modern-input ps-5" placeholder="Buscar productos..." @bind="searchTerm" @bind:event="oninput" />
+            </div>
+            <div class="text-muted small fw-medium">
+                Mostrando <span class="fw-bold text-dark">@FilteredProductos.Count</span> productos
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Ref</th>
+                        <th>Producto</th>
+                        <th>Precio Venta</th>
+                        <th>Costo Compra</th>
+                        <th>Stock</th>
+                        @if (Session.IsWorker) { <th class="text-end pe-4">Acciones</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (isLoading)
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div> Sincronizando...</td></tr>
+                    }
+                    else if (!FilteredProductos.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i> No se encontraron productos.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var prod in FilteredProductos)
+                        {
+                            <tr>
+                                <td class="ps-4"><span class="font-monospace text-muted">#@prod.Id.ToString("D4")</span></td>
+                                <td><span class="fw-bold text-dark">@prod.Name</span></td>
+                                <td><span class="fw-semibold text-success">$@prod.Price.ToString("N0")</span></td>
+                                <td><span class="text-muted">$@prod.PurchasePrice.ToString("N0")</span></td>
+                                <td>
+                                    <span class="badge @GetBadgeClass(prod.Stock)">
+                                        @prod.Stock uds
+                                    </span>
+                                </td>
+                                @if (Session.IsWorker)
+                                {
+                                    <td class="text-end pe-4">
+                                        <button class="action-btn stock me-1" @onclick="() => AbrirModalStock(prod)">
+                                            <i class="bi bi-sliders"></i> Stock
+                                        </button>
+                                        <button class="action-btn delete" @onclick="() => SolicitarEliminacion(prod)">
+                                            <i class="bi bi-trash3"></i> Borrar
+                                        </button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-}
+</div>
 
-@if (Session.IsWorker)
+<!-- Modal Gestión de Stock -->
+@if (showStockModal && selectedProduct != null)
 {
-    <div class="card mb-4">
-        <div class="card-header fw-bold">Registrar nuevo producto</div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <input class="form-control" placeholder="Nombre" @bind="newProductName" />
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Gestionar Stock</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalStock"></button>
                 </div>
-                <div class="col-md-2">
-                    <input type="number" step="0.01" class="form-control" placeholder="Precio venta" @bind="newProductPrice" />
+                <div class="modal-body">
+                    <div class="p-3 mb-3 rounded-3 bg-light border">
+                        <h6 class="fw-bold mb-1">@selectedProduct.Name</h6>
+                        <small class="text-muted">Stock actual: @selectedProduct.Stock unidades</small>
+                    </div>
+
+                    <div class="btn-group w-100 mb-3" role="group">
+                        <input type="radio" class="btn-check" name="stk" id="add" checked="@isAddingStock" @onchange="() => isAddingStock = true">
+                        <label class="btn @(isAddingStock ? "btn-primary fw-bold" : "btn-outline-secondary")" for="add">Ingresar</label>
+                        
+                        <input type="radio" class="btn-check" name="stk" id="rem" checked="@(!isAddingStock)" @onchange="() => isAddingStock = false">
+                        <label class="btn @(!isAddingStock ? "btn-danger fw-bold" : "btn-outline-secondary")" for="rem">Retirar</label>
+                    </div>
+
+                    <label class="form-label small text-muted">Cantidad a @(isAddingStock ? "sumar" : "restar"):</label>
+                    <input type="number" class="form-control modern-input text-center fw-bold fs-5" min="1" @bind="stockAdjustmentQty" />
                 </div>
-                <div class="col-md-2">
-                    <input type="number" step="0.01" class="form-control" placeholder="Precio compra" @bind="newProductPurchasePrice" />
-                </div>
-                <div class="col-md-2">
-                    <input type="number" class="form-control" placeholder="Stock" @bind="newProductStock" />
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-success w-100" @onclick="RegistrarProducto" disabled="@isBusy">Agregar producto</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button class="btn btn-light text-muted btn-modern" @onclick="CerrarModalStock">Cancelar</button>
+                    <button class="btn @(isAddingStock ? "btn-primary-modern" : "btn-danger text-white") btn-modern px-4" @onclick="GuardarAjusteStock" disabled="@isBusy">Guardar</button>
                 </div>
             </div>
         </div>
     </div>
 }
-else
+
+<!-- Modal Confirmación Eliminación / Soft Delete inteligente -->
+@if (showConfirmDelete && selectedProduct != null)
 {
-    <div class="alert alert-info">
-        Estás viendo el catálogo en modo lectura.
-        <a href="login">Inicia sesión como Trabajador</a> para agregar o eliminar productos.
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar Producto</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">¿Desea eliminar <strong>@selectedProduct.Name</strong>? Si tiene ventas registradas, el sistema aplicará un borrado lógico dejando su stock en 0 automáticamente.</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button class="btn btn-light text-muted btn-modern" @onclick="CerrarModalEliminar">Cancelar</button>
+                    <button class="btn btn-danger text-white btn-modern px-4" @onclick="EjecutarEliminacionProducto" disabled="@isBusy">Confirmar</button>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
-<table class="table table-striped align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Precio venta</th>
-            <th>Precio compra</th>
-            <th>Stock</th>
-            @if (Session.IsWorker)
-            {
-                <th>Acciones</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @if (isLoading)
-        {
-            <tr><td colspan="6" class="text-center">Cargando...</td></tr>
-        }
-        else if (productos.Count == 0)
-        {
-            <tr><td colspan="6" class="text-center">No hay productos registrados en el inventario.</td></tr>
-        }
-        else
-        {
-            @foreach (var prod in productos)
-            {
-                <tr>
-                    <td>@prod.Id</td>
-                    <td>@prod.Name</td>
-                    <td>$@prod.Price.ToString("N2")</td>
-                    <td>$@prod.PurchasePrice.ToString("N2")</td>
-                    <td>@prod.Stock</td>
-                    @if (Session.IsWorker)
-                    {
-                        <td>
-                            <button class="btn btn-sm btn-danger" @onclick="() => EliminarProducto(prod.Id)" disabled="@isBusy">Eliminar</button>
-                        </td>
-                    }
-                </tr>
-            }
-        }
-    </tbody>
-</table>
-
 @code {
     private List<ProductItem> productos = new();
+    private string searchTerm = string.Empty;
     private string newProductName = string.Empty;
     private double newProductPrice;
     private double newProductPurchasePrice;
     private int newProductStock;
-    private string? errorMessage;
     private bool isLoading = true;
     private bool isBusy;
+
+    private ProductItem? selectedProduct;
+    private bool showStockModal;
+    private bool isAddingStock = true;
+    private int stockAdjustmentQty = 1;
+    private bool showConfirmDelete;
+
+    private List<ProductItem> FilteredProductos => string.IsNullOrWhiteSpace(searchTerm)
+        ? productos
+        : productos.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,53 +236,78 @@ else
         isLoading = true;
         var result = await Api.GetProductsAsync();
         isLoading = false;
-
-        if (result.Ok)
-            productos = result.Data ?? new();
-        else
-            errorMessage = result.Error;
+        if (result.Ok) productos = result.Data ?? new();
+        else Toast.ShowError("No se pudo conectar con el catálogo.");
     }
 
     private async Task RegistrarProducto()
     {
-        errorMessage = null;
-
-        if (string.IsNullOrWhiteSpace(newProductName))
-        {
-            errorMessage = "El nombre del producto es obligatorio.";
-            return;
-        }
-
+        if (string.IsNullOrWhiteSpace(newProductName)) { Toast.ShowWarning("El nombre es obligatorio."); return; }
         isBusy = true;
         var result = await Api.CreateProductAsync(newProductName.Trim(), newProductPrice, newProductPurchasePrice, newProductStock);
         isBusy = false;
-
         if (result.Ok)
         {
-            newProductName = string.Empty;
-            newProductPrice = 0;
-            newProductPurchasePrice = 0;
-            newProductStock = 0;
+            Toast.ShowSuccess("Producto registrado con éxito.");
+            newProductName = string.Empty; newProductPrice = 0; newProductPurchasePrice = 0; newProductStock = 0;
             await CargarProductos();
         }
-        else
-        {
-            errorMessage = result.Error;
-        }
+        else Toast.ShowError(result.Error ?? "Error al registrar.");
     }
 
-    private async Task EliminarProducto(int id)
+    private void AbrirModalStock(ProductItem prod) { selectedProduct = prod; stockAdjustmentQty = 1; isAddingStock = true; showStockModal = true; }
+    private void CerrarModalStock() => showStockModal = false;
+
+    private async Task GuardarAjusteStock()
     {
-        errorMessage = null;
+        if (selectedProduct == null || stockAdjustmentQty <= 0) return;
         isBusy = true;
-        var result = await Api.DeleteProductAsync(id);
+        // Si isAddingStock es true, mandamos positivo. Si es false, mandamos negativo para que el endpoint de stock reste correctamente.
+        int qtyToSend = isAddingStock ? stockAdjustmentQty : -stockAdjustmentQty;
+        var result = await Api.AddStockAsync(selectedProduct.Id, qtyToSend);
         isBusy = false;
 
         if (result.Ok)
+        {
+            Toast.ShowSuccess("Stock actualizado correctamente.");
+            CerrarModalStock();
             await CargarProductos();
-        else
-            errorMessage = result.Error;
+        }
+        else Toast.ShowError("Error al modificar el stock.");
     }
 
+    private void SolicitarEliminacion(ProductItem prod) { selectedProduct = prod; showConfirmDelete = true; }
+    private void CerrarModalEliminar() => showConfirmDelete = false;
+
+    private async Task EjecutarEliminacionProducto()
+    {
+        if (selectedProduct == null) return;
+        showConfirmDelete = false;
+        isBusy = true;
+        
+        // Intentamos borrar el producto de forma directa
+        var result = await Api.DeleteProductAsync(selectedProduct.Id);
+        
+        if (result.Ok)
+        {
+            isBusy = false;
+            Toast.ShowSuccess("Producto eliminado del sistema.");
+            await CargarProductos();
+        }
+        else
+        {
+            // Si la base de datos lo rechaza por llaves foráneas (tiene pedidos), aplicamos el Soft Delete: vaciamos su stock a 0
+            int remainingStock = selectedProduct.Stock;
+            if (remainingStock > 0)
+            {
+                await Api.AddStockAsync(selectedProduct.Id, -remainingStock);
+            }
+            isBusy = false;
+            Toast.ShowSuccess($"El producto '{selectedProduct.Name}' tiene historial de ventas. Se ha archivado dejando su stock en 0.");
+            await CargarProductos();
+        }
+    }
+
+    private string GetBadgeClass(int stock) => stock switch { <= 0 => "badge-soft-danger", <= 5 => "badge-soft-warning", _ => "badge-soft-success" };
     public void Dispose() => Session.Changed -= OnSessionChanged;
 }

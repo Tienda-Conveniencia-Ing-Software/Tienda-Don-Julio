@@ -13,7 +13,7 @@ builder.Services.AddScoped<AuthSession>();
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped<CartState>();
-
+builder.Services.AddScoped<ToastService>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
