@@ -48,6 +48,7 @@ public class AppDbContextMappingTests
     [InlineData(typeof(Cliente), nameof(Cliente.PasswordHash), "contrasena_hash")]
     [InlineData(typeof(Product), nameof(Product.ID), "id_producto")]
     [InlineData(typeof(Product), nameof(Product.Price), "precio_ventas")]
+    [InlineData(typeof(Product), nameof(Product.Active), "activo")]
     [InlineData(typeof(Order), nameof(Order.Id), "id_pedido")]
     [InlineData(typeof(Order), nameof(Order.ClienteId), "id_cliente")]
     [InlineData(typeof(Order), nameof(Order.Status), "estado")]

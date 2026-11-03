@@ -38,6 +38,11 @@ public class OrderService
             var product = await _context.Productos.FindAsync(item.ProductId)
                 ?? throw new KeyNotFoundException($"Producto con ID {item.ProductId} no encontrado.");
 
+            if (!product.Active)
+            {
+                throw new InvalidOperationException($"El producto '{product.Name}' ya no está disponible.");
+            }
+
             if (product.Stock < item.Quantity)
             {
                 throw new InvalidOperationException($"Stock insuficiente para '{product.Name}'. Disponible: {product.Stock}, Solicitado: {item.Quantity}.");

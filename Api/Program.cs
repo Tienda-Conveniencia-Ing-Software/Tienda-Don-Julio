@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Api.Middleware;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -26,8 +28,13 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddTiendaCore();
 
 builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddProblemDetails();
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+    .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = ctx =>
+    {
+        // Validaciones de DTO (400) con el mismo formato de error que el resto de la API
+        var msg = string.Join(" ", ctx.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        return new BadRequestObjectResult(new ErrorResponse(400, "Bad Request", msg, ctx.HttpContext.TraceIdentifier));
+    });
 
 // Autenticacion JWT
 var jwtKey = builder.Configuration["Jwt:Key"]
@@ -91,8 +98,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Errores no controlados -> 500 con formato ProblemDetails
-app.UseExceptionHandler();
+// Errores no controlados -> 400/403/404/409/500 con JSON uniforme
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Respuestas vacías (401 sin token, 403, 404) -> también JSON uniforme
+app.UseStatusCodePages(ctx => ErrorWriter.WriteAsync(
+    ctx.HttpContext,
+    ctx.HttpContext.Response.StatusCode,
+    ctx.HttpContext.Response.StatusCode switch
+    {
+        401 => "No autorizado: falta el token o expiró.",
+        403 => "No tienes permisos para esta acción.",
+        404 => "Recurso no encontrado.",
+        _ => "Solicitud no válida."
+    }));
 
 // Aplicar migraciones automáticamente al iniciar
 //using (var scope = app.Services.CreateScope())

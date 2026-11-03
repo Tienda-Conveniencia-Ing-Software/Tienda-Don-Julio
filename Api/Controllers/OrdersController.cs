@@ -28,18 +28,11 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto request)
     {
-        try
-        {
-            var clienteId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            request.ClienteId = clienteId;
+        var clienteId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        request.ClienteId = clienteId;
 
-            var order = await _orderService.CreateOrderAsync(request);
-            return Ok(order);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var order = await _orderService.CreateOrderAsync(request);
+        return Ok(order);
     }
 
     [HttpGet("mine")]
@@ -86,16 +79,9 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ConfirmOrder(int id)
     {
-        try
-        {
-            var trabajadorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var sale = await _saleService.ConfirmOrderAndCreateSaleAsync(id, trabajadorId);
-            return Ok(sale);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var trabajadorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var sale = await _saleService.ConfirmOrderAndCreateSaleAsync(id, trabajadorId);
+        return Ok(sale);
     }
 
     [HttpPut("{id}/status")]
@@ -107,24 +93,18 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusRequest request)
     {
-        try
+        if (!Enum.TryParse<OrderStatus>(request.NewStatus, true, out var newStatus))
         {
-            if (Enum.TryParse<OrderStatus>(request.NewStatus, true, out var newStatus))
-            {
-                // ✅ VALIDACIÓN: No permitir Completado por esta vía
-                if (newStatus == OrderStatus.Completado)
-                {
-                    return BadRequest(new { message = "Para completar un pedido, use el endpoint POST /api/orders/{id}/confirm." });
-                }
-
-                await _orderService.UpdateOrderStatusAsync(id, newStatus);
-                return Ok();
-            }
             return BadRequest(new { message = "Estado inválido." });
         }
-        catch (Exception ex)
+
+        // No permitir Completado por esta vía
+        if (newStatus == OrderStatus.Completado)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new { message = "Para completar un pedido, use el endpoint POST /api/orders/{id}/confirm." });
         }
+
+        await _orderService.UpdateOrderStatusAsync(id, newStatus);
+        return Ok();
     }
 }

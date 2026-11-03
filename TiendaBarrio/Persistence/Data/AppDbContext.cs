@@ -72,6 +72,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Price).HasColumnName("precio_ventas").HasColumnType("numeric(10,2)");
             entity.Property(e => e.PurchasePrice).HasColumnName("precio_compra").HasColumnType("numeric(10,2)");
             entity.Property(e => e.Stock).HasColumnName("stock");
+            entity.Property(e => e.Active).HasColumnName("activo");
         });
 
         // ---------------- carrito_items (líneas del pedido) ----------------

@@ -5,6 +5,7 @@ public class Product
     public double Price { get; set; }                  // ← set agregado
     public double PurchasePrice { get; set; }          // ← set agregado
     public int Stock { get; set; }                     // ← set agregado
+    public bool Active { get; set; } = true;           // false = borrado lógico
 
     // Constructor vacío (para EF Core)
     public Product()

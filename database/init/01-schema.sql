@@ -33,7 +33,8 @@ CREATE TABLE producto (
     nombre_producto VARCHAR(100)  NOT NULL,
     precio_ventas   NUMERIC(10,2) NOT NULL CHECK (precio_ventas >= 0),
     precio_compra   NUMERIC(10,2) NOT NULL CHECK (precio_compra >= 0),
-    stock           INTEGER       NOT NULL DEFAULT 0 CHECK (stock >= 0)   -- la BD impide stock negativo
+    stock           INTEGER       NOT NULL DEFAULT 0 CHECK (stock >= 0),  -- la BD impide stock negativo
+    activo          BOOLEAN       NOT NULL DEFAULT TRUE                   -- FALSE = borrado lógico (conserva el historial)
 );
 
 -- ---------------------------------------------------------------------

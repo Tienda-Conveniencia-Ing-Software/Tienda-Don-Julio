@@ -16,12 +16,12 @@ public class ProductRepository : IProductRepository
 
     public async Task<List<Product>> GetAllAsync()
     {
-        return await _context.Productos.ToListAsync();
+        return await _context.Productos.Where(p => p.Active).ToListAsync();
     }
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Productos.FirstOrDefaultAsync(p => p.ID == id);
+        return await _context.Productos.FirstOrDefaultAsync(p => p.ID == id && p.Active);
     }
 
     public async Task AddAsync(Product product)
@@ -40,7 +40,8 @@ public class ProductRepository : IProductRepository
         var product = await GetByIdAsync(id);
         if (product != null)
         {
-            _context.Productos.Remove(product);
+            // Borrado lógico: se conserva la fila para no romper ventas y pedidos históricos.
+            product.Active = false;
         }
     }
 

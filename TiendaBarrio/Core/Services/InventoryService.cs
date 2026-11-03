@@ -52,20 +52,23 @@ public async Task<List<Product>> GetProductsAsync()
     {
         ValidarPermisoTrabajador(usuario);
 
-        int id = products.Count > 0 ? products.Max(p => p.ID) + 1 : 1;
-        var product = new Product(id, name, price, purchasePrice, stock);
+        // ID 0 = lo genera la base de datos (IDENTITY). Así no choca con productos archivados.
+        var product = new Product(0, name, price, purchasePrice, stock);
 
-        // ✅ Guardar con EF Core
         await _productRepository.AddAsync(product);
-        await _productRepository.SaveChangesAsync();
 
-        products.Add(product);
-
-        if (stock > 0)
+        double cost = purchasePrice * stock;
+        if (cost > 0)
         {
-            double cost = purchasePrice * stock;
+            // Mismo DbContext: este SaveChanges guarda el producto y el gasto juntos (atómico).
             await _financeService.RegisterInventoryPurchaseAsync(cost, $"Producto nuevo: {name.Trim()} x{stock}");
         }
+        else
+        {
+            await _productRepository.SaveChangesAsync();
+        }
+
+        products.Add(product);
 
         return product;
     }
@@ -119,10 +122,17 @@ public async Task<List<Product>> GetProductsAsync()
 
         product.IncreaseStock(quantity);
         await _productRepository.UpdateAsync(product);
-        await _productRepository.SaveChangesAsync();
 
         double cost = product.PurchasePrice * quantity;
-        await _financeService.RegisterInventoryPurchaseAsync(cost, $"Reposicion de stock: {product.Name} x{quantity}");
+        if (cost > 0)
+        {
+            // Mismo DbContext: este SaveChanges guarda stock + movimiento de caja en una sola transacción.
+            await _financeService.RegisterInventoryPurchaseAsync(cost, $"Reposicion de stock: {product.Name} x{quantity}");
+        }
+        else
+        {
+            await _productRepository.SaveChangesAsync();
+        }
 
         return true;
     }
