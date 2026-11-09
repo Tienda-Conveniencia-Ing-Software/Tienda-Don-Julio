@@ -65,7 +65,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="glass-card p-3 d-flex align-items-center">
-                        <div class="rmetric-icon-circle bg-info bg-opacity-10 me-3 text-info">
+                        <div class="metric-icon-circle bg-info bg-opacity-10 me-3 text-info">
                             <i class="bi bi-gear-wide-connected fs-3"></i>
                         </div>
                         <div>
@@ -164,6 +164,12 @@
                                         <button class="btn btn-sm btn-light border text-dark rounded-3" title="Cambiar Estado" @onclick="() => AbrirModalEstado(order)">
                                             <i class="bi bi-sliders me-1"></i> Estado
                                         </button>
+                                        @if (order.Status == "Pendiente" || order.Status == "EnProceso")
+                                        {
+                                            <button class="btn btn-sm btn-success rounded-3 ms-1" title="Confirmar venta" @onclick="() => ConfirmarVenta(order)" disabled="@isBusy">
+                                                <i class="bi bi-check2-circle me-1"></i> Confirmar venta
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -352,20 +358,53 @@
     private async Task GuardarNuevoEstado()
     {
         if (selectedOrder == null || string.IsNullOrWhiteSpace(newStatus)) return;
-        
+
         isBusy = true;
-        var result = await Api.UpdateOrderStatusAsync(selectedOrder.Id, newStatus);
+        ApiResult<bool> result;
+
+        if (newStatus == "Completado")
+        {
+            // Completar un pedido = confirmar la venta (descuenta stock, crea la Venta y el movimiento de caja)
+            var confirm = await Api.ConfirmOrderAsync(selectedOrder.Id);
+            result = confirm.Ok
+                ? ApiResult<bool>.Success(true)
+                : ApiResult<bool>.Fail(confirm.Error ?? "No se pudo confirmar la venta.");
+        }
+        else
+        {
+            result = await Api.UpdateOrderStatusAsync(selectedOrder.Id, newStatus);
+        }
         isBusy = false;
 
         if (result.Ok)
         {
-            Toast.ShowSuccess($"El pedido #{selectedOrder.Id} cambió a estado '{newStatus}'.");
+            var msg = newStatus == "Completado"
+                ? $"Venta confirmada: el pedido #{selectedOrder.Id} quedó completado."
+                : $"El pedido #{selectedOrder.Id} cambió a estado '{newStatus}'.";
+            Toast.ShowSuccess(msg);
             CerrarModales();
             await CargarPedidos();
         }
         else
         {
             Toast.ShowError(result.Error ?? "No se pudo actualizar el estado del pedido.");
+        }
+    }
+
+    private async Task ConfirmarVenta(OrderResponse order)
+    {
+        isBusy = true;
+        var result = await Api.ConfirmOrderAsync(order.Id);
+        isBusy = false;
+
+        if (result.Ok)
+        {
+            Toast.ShowSuccess($"Venta confirmada para el pedido #{order.Id}.");
+            await CargarPedidos();
+        }
+        else
+        {
+            Toast.ShowError(result.Error ?? "No se pudo confirmar la venta.");
         }
     }
 
